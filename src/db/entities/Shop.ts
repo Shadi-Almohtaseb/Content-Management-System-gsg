@@ -1,18 +1,21 @@
 import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, OneToMany, OneToOne } from "typeorm";
 import bcrypt from 'bcrypt';
-import { Order } from "./Order.js";
+import { Product } from "./Product.js";
 import { Address } from "./Address.js";
 
-@Entity('users')
-export class User extends BaseEntity {
+@Entity('shops')
+export class Shop extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    shop_id: string;
 
     @Column({ type: 'varchar', default: "https://e7.pngegg.com/pngimages/84/165/png-clipart-united-states-avatar-organization-information-user-avatar-service-computer-wallpaper-thumbnail.png" })
     avatar: string;
 
     @Column({ length: 255, nullable: false })
-    userName: string;
+    shopName: string;
+
+    @Column({ type: 'text', nullable: true })
+    description: string;
 
     @Column({ nullable: false, unique: true })
     email: string;
@@ -27,12 +30,15 @@ export class User extends BaseEntity {
     password: string;
 
     @Column({ nullable: true, unique: true })
-    phoneNumber: number;
+    phoneNumber: number
 
-    @OneToMany(() => Order, order => order.user)
-    orders: Order
+    @OneToMany(() => Product, products => products.shop)
+    products: Product[]
 
-    @OneToOne(() => Address, address => address.user)
+    // @Column({ nullable: true })
+    // orders: Order
+
+    @OneToOne(() => Address, address => address.shop)
     address: Address
 
     @CreateDateColumn({

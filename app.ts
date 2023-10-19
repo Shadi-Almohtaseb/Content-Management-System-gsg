@@ -6,7 +6,6 @@ import indexRouter from './src/routes/index.js'
 import usersRouter from './src/routes/users.js'
 import dataSource from './src/db/dataSource.js'
 
-
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT || 5000;
