@@ -5,7 +5,7 @@ import { Category } from "./Category.js";
 @Entity('products')
 export class Product extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
-    id: string;
+    id: number;
 
     @Column({ length: 255, nullable: false })
     name: string
@@ -28,14 +28,14 @@ export class Product extends BaseEntity {
     @Column({ nullable: false })
     stock: number
 
-    @Column({ length: 255, nullable: false })
+    @Column({ nullable: false, type: 'simple-array' })
     size: string[]
 
-    @Column({ length: 255, nullable: false })
+    @Column({ nullable: false, type: 'simple-array' })
     color: string[]
 
-    @Column({ nullable: true })
-    ratings: number
+    @Column({ type: 'float', nullable: true })
+    rating: number;
 
     @Column({ nullable: false })
     authorId: string
@@ -44,11 +44,11 @@ export class Product extends BaseEntity {
     sold_out: number
 
     @ManyToOne(() => Shop, shop => shop.products)
-    shop: Shop
+    shop: Partial<Shop>
 
     @ManyToMany(() => Category, category => category.products)
     @JoinTable()
-    category: Category;
+    category: Partial<Category>;
 
     // @Column({ nullable: true })
     // tags: tags

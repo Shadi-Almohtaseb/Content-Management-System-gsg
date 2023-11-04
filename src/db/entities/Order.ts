@@ -1,14 +1,13 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, OneToOne } from "typeorm";
 import { User } from "./User.js";
 import { Address } from "./Address.js";
+import { Shop } from "./Shop.js";
+import { Product } from "./Product.js";
 
 @Entity('orders')
 export class Order extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
-    id: string;
-
-    @Column({ length: 255, nullable: false })
-    name: string
+    id: number;
 
     @Column({
         type: "enum",
@@ -17,14 +16,20 @@ export class Order extends BaseEntity {
     })
     status: 'pending' | 'shipping' | 'completed' | 'cancelled' | 'refunded' | 'failed';
 
-    @Column({ nullable: true })
+    @Column({ nullable: false, type: 'float' })
     totalPrice: number
 
-    @ManyToOne(() => User, user => user.orders)
-    user: User
-
-    @Column({ nullable: false })
+    @OneToOne(() => Address, address => address.user)
     shippingAddress: Address
+
+    @ManyToOne(() => Shop, shop => shop.orders)
+    shop: Partial<Shop>
+
+    @ManyToOne(() => User, user => user.orders)
+    user: Partial<User>
+
+    @OneToMany(() => Product, product => product.id)
+    products: Partial<Product>[]
 
     @CreateDateColumn({
         type: 'timestamp',

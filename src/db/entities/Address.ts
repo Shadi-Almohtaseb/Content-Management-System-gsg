@@ -5,7 +5,7 @@ import { Shop } from "./Shop.js";
 @Entity('addresses')
 export class Address extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
-    id: string;
+    id: number;
 
     @Column({ length: 255, nullable: false })
     country: string;
@@ -20,10 +20,10 @@ export class Address extends BaseEntity {
     region: string;
 
     @OneToOne(() => User, user => user.address)
-    user: User
+    user: Partial<User>
 
     @OneToOne(() => Shop, shop => shop.address)
-    shop: Shop
+    shop: Partial<Shop>
 
     @CreateDateColumn({
         type: 'timestamp',

@@ -4,7 +4,7 @@ import { Product } from "./Product.js";
 @Entity('categories')
 export class Category extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
-    id: string;
+    id: number;
 
     @Column({ length: 255, nullable: false })
     name: string
@@ -16,7 +16,7 @@ export class Category extends BaseEntity {
     description: string
 
     @ManyToMany(() => Product, product => product.category)
-    products: Product[]
+    products: Partial<Product>[]
 
     @CreateDateColumn({
         type: 'timestamp',

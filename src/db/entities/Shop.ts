@@ -2,6 +2,7 @@ import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGene
 import bcrypt from 'bcrypt';
 import { Product } from "./Product.js";
 import { Address } from "./Address.js";
+import { Order } from "./Order.js";
 
 @Entity('shops')
 export class Shop extends BaseEntity {
@@ -30,16 +31,16 @@ export class Shop extends BaseEntity {
     password: string;
 
     @Column({ nullable: true, unique: true })
-    phoneNumber: number
+    phoneNumber: string
 
     @OneToMany(() => Product, products => products.shop)
-    products: Product[]
+    products: Partial<Product>[]
 
-    // @Column({ nullable: true })
-    // orders: Order
+    @OneToMany(() => Order, order => order.shop)
+    orders: Partial<Order>[]
 
     @OneToOne(() => Address, address => address.shop)
-    address: Address
+    address: Partial<Address>
 
     @CreateDateColumn({
         type: 'timestamp',

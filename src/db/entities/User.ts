@@ -1,4 +1,4 @@
-import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, OneToMany, OneToOne } from "typeorm";
+import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, OneToMany, OneToOne, JoinColumn } from "typeorm";
 import bcrypt from 'bcrypt';
 import { Order } from "./Order.js";
 import { Address } from "./Address.js";
@@ -27,13 +27,14 @@ export class User extends BaseEntity {
     password: string;
 
     @Column({ nullable: true, unique: true })
-    phoneNumber: number;
+    phoneNumber: string;
 
     @OneToMany(() => Order, order => order.user)
-    orders: Order
+    orders: Partial<Order>[]
 
     @OneToOne(() => Address, address => address.user)
-    address: Address
+    @JoinColumn()
+    address: Partial<Address>
 
     @CreateDateColumn({
         type: 'timestamp',
