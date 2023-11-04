@@ -3,7 +3,7 @@ import express from 'express'
 import dotenv from 'dotenv'
 import createError from 'http-errors'
 import indexRouter from './src/routes/index.js'
-import usersRouter from './src/routes/users.js'
+import usersRouter from './src/routes/user.js'
 import dataSource from './src/db/dataSource.js'
 
 const app = express();
