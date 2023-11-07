@@ -2,6 +2,7 @@ import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGene
 import bcrypt from 'bcrypt';
 import { Order } from "./Order.js";
 import { Address } from "./Address.js";
+import { UserOTPVerification } from "./UserOTPVerification.js";
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -29,12 +30,19 @@ export class User extends BaseEntity {
     @Column({ nullable: true, unique: true })
     phoneNumber: string;
 
+    @Column({ nullable: false, default: false })
+    isVerified: boolean;
+
     @OneToMany(() => Order, order => order.user)
     orders: Partial<Order>[]
 
     @OneToOne(() => Address, address => address.user)
     @JoinColumn()
     address: Partial<Address>
+
+    @OneToOne(() => UserOTPVerification, otp => otp.user)
+    @JoinColumn()
+    otp: Partial<UserOTPVerification>
 
     @CreateDateColumn({
         type: 'timestamp',

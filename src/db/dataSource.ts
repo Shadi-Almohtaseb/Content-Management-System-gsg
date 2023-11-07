@@ -6,21 +6,23 @@ import { Product } from "./entities/Product.js";
 import { Order } from "./entities/Order.js";
 import { Category } from "./entities/Category.js";
 import { Address } from "./entities/Address.js";
+import { UserOTPVerification } from "./entities/UserOTPVerification.js";
 
 const dataSource = new DataSource({
     type: 'postgres',
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
-    username: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    database: process.env.DB_NAME,
+    host: process.env.POSTGRESQL_ADDON_HOST,
+    port: Number(process.env.POSTGRESQL_ADDON_PORT),
+    username: process.env.POSTGRESQL_ADDON_USER,
+    password: process.env.POSTGRESQL_ADDON_PASSWORD,
+    database: process.env.POSTGRESQL_ADDON_DB,
     entities: [
         User,
         Shop,
         Product,
         Order,
         Category,
-        Address
+        Address,
+        UserOTPVerification
     ],
     migrations: ['./**/migration/*.ts'],
     synchronize: true,
