@@ -1,10 +1,12 @@
 import "./config.js"
+import "express-async-errors";
 import express from 'express'
 import dotenv from 'dotenv'
-import createError from 'http-errors'
+import cookieParser from 'cookie-parser'
 import indexRouter from './src/routes/index.js'
 import usersRouter from './src/routes/user.js'
 import dataSource from './src/db/dataSource.js'
+import { DefaultErrorHandler, customErrorHandler, notFoundHandler } from "./src/middleware/errorHandlers.js";
 
 const app = express();
 dotenv.config();
@@ -12,25 +14,21 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
-});
+app.use(notFoundHandler)
 
-// error handler
-app.use(function (err: any, req: any, res: any, next: any) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+// Custom Error handler middleware
+app.use(customErrorHandler)
 
-  // render the error page
-  res.status(err.status || 500).send({ error: err.message });
-});
+// Default error handler
+app.use(DefaultErrorHandler)
 
+// Connect to DB
 dataSource.initialize().then(() => {
   console.log("Connected to DB!");
 }).catch(err => {
