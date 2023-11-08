@@ -14,7 +14,7 @@ export function customErrorHandler(err: any, req: Request, res: Response, next: 
   } else {
     // Handle other errors here
     console.log("Error :( => ", err);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 }
 
