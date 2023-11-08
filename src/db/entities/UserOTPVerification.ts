@@ -1,6 +1,5 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, BeforeInsert, OneToOne, PrimaryGeneratedColumn, JoinColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./User.js";
-import bcrypt from 'bcrypt';
 
 @Entity('user-otp-verifications')
 export class UserOTPVerification extends BaseEntity {
@@ -10,8 +9,7 @@ export class UserOTPVerification extends BaseEntity {
     @Column({ type: 'varchar', length: 255, nullable: false })
     otp: string;
 
-    @OneToOne(() => User, user => user.otp)
-    @JoinColumn()
+    @OneToOne(() => User, user => user.otp, { onDelete: 'CASCADE' })
     user: Partial<User>;
 
     @CreateDateColumn({

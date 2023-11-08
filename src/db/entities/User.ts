@@ -40,7 +40,7 @@ export class User extends BaseEntity {
     @JoinColumn()
     address: Partial<Address>
 
-    @OneToOne(() => UserOTPVerification, otp => otp.user)
+    @OneToOne(() => UserOTPVerification, otp => otp.user, { onUpdate: 'CASCADE' })
     @JoinColumn()
     otp: Partial<UserOTPVerification>
 

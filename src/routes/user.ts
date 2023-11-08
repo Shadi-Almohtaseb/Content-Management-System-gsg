@@ -1,5 +1,5 @@
 import express from 'express';
-import { activateAccountController, signupController } from '../controllers/user.js';
+import { activateAccountController, loginController, signupController } from '../controllers/user.js';
 const router = express.Router();
 
 /* POST Signup user. */
@@ -7,7 +7,7 @@ router.post("/signup", async (req: express.Request, res: express.Response, next:
   try {
     if (req.body.userName && req.body.password && req.body.email) {
       const data = await signupController(req.body);
-      return res.status(201).cookie("otp", data.userOTP, { httpOnly: true }).json(data)
+      return res.status(201).json(data)
     } else {
       return res.status(400).json("All fields are required");
     }
@@ -29,6 +29,22 @@ router.post("/activation", async (req: express.Request, res: express.Response, n
 
   } catch (error) {
     next(error)
+  }
+})
+
+/* POST Login user. */
+router.post("/login", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  try {
+    if (req.body.email && req.body.password) {
+      const data = await loginController(req.body);
+      return res.status(200).cookie(
+        "userToken", data.token,
+        { httpOnly: true, secure: true, sameSite: "none" }).json(data)
+    } else {
+      return res.status(400).json("All fields are required");
+    }
+  } catch (error) {
+    next(error);
   }
 })
 
