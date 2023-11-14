@@ -1,15 +1,15 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./User.js";
 
-@Entity('user-otp-verifications')
-export class UserOTPVerification extends BaseEntity {
+@Entity('verification-codes')
+export class VerificationCode extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
     id: string;
 
     @Column({ type: 'varchar', length: 255, nullable: false })
-    otp: string;
+    verificationCode: string;
 
-    @OneToOne(() => User, user => user.otp, { onDelete: 'CASCADE' })
+    @OneToOne(() => User, user => user.verificationCode, { onDelete: 'CASCADE' })
     user: Partial<User>;
 
     @CreateDateColumn({

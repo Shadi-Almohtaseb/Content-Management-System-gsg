@@ -5,7 +5,7 @@ import { Product } from "./entities/Product.js";
 import { Order } from "./entities/Order.js";
 import { Category } from "./entities/Category.js";
 import { Address } from "./entities/Address.js";
-import { UserOTPVerification } from "./entities/UserOTPVerification.js";
+import { VerificationCode } from "./entities/VerificationCode.js";
 
 const dataSource = new DataSource({
     type: 'mysql',
@@ -21,7 +21,7 @@ const dataSource = new DataSource({
         Order,
         Category,
         Address,
-        UserOTPVerification
+        VerificationCode
     ],
     migrations: ['./**/migration/*.ts'],
     synchronize: true,

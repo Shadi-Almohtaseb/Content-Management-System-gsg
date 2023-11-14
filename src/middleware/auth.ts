@@ -4,7 +4,7 @@ import { User } from "../db/entities/User.js";
 import { ExpressNS } from "../../@types/index.js";
 
 const authenticate: RequestHandler<any, any, Record<string, any>, any, Record<string, any>> = async (req, res, next) => {
-    const token = req.headers["authorization"]?.split(" ")[1] || "";
+    const token = req.cookies["userToken"] || "";
     let validToken;
     try {
         validToken = jwt.verify(token, process.env.SECRET_KEY || "");
