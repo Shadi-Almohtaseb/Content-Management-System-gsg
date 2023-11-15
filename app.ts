@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import indexRouter from './src/routes/index.js'
 import usersRouter from './src/routes/user.js'
+import shopsRouter from './src/routes/shop.js'
 import dataSource from './src/db/dataSource.js'
 import { DefaultErrorHandler, customErrorHandler, notFoundHandler } from "./src/middleware/errorHandlers.js";
 
@@ -18,6 +19,7 @@ app.use(cookieParser());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/shops', shopsRouter);
 
 // catch 404 and forward to error handler
 app.use(notFoundHandler)

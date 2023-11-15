@@ -1,10 +1,9 @@
 import { User } from "../db/entities/User.js";
 import { AppError } from "../utils/errorHandler.js";
-import generateToken from "../utils/generateToken.js";
-import sendMail from "../utils/sendMail.js";
+import { generateToken } from "../utils/generateToken.js";
 import { VerificationCode } from "../db/entities/VerificationCode.js";
 import bcrypt from 'bcrypt';
-import { createStyledEmail } from "../utils/styledEmail.js";
+import { sendVerificationCode } from "../utils/sendVerificationCode.js";
 
 const signupController = async (payload: User) => {
   const { email } = payload;
@@ -15,83 +14,15 @@ const signupController = async (payload: User) => {
       throw new AppError("User already exists and is verified", 409, true);
     } else {
       const verificationResult = await sendVerificationCode(user, "Verify your email");
-      return {
-        success: verificationResult.success,
-        message: verificationResult.message,
-        user: verificationResult.user,
-      }
+      return verificationResult
     }
   } else {
     const newUser = User.create(payload);
     await newUser.save();
     const verificationResult = await sendVerificationCode(newUser, "Verify your email");
-    return {
-      success: verificationResult.success,
-      message: verificationResult.message,
-      user: verificationResult.user,
-    }
+    return verificationResult
   }
 };
-
-
-const sendVerificationCode = async (payload: User, title: string) => {
-  try {
-    if (payload) {
-      // Generate a 6-digit Code
-      const generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-      const CODE_EXPIRATION_TIME = 60 * 60 * 1000; // 1 hour expiration time
-      const expiresAt = new Date(Date.now() + CODE_EXPIRATION_TIME);
-      let vCode;
-
-      if (!payload.verificationCode) {
-        // Create a new VerificationCode if it doesn't exist
-        vCode = VerificationCode.create({
-          verificationCode: generatedCode,
-          user: payload,
-          expiresAt: expiresAt,
-        });
-        payload.verificationCode = vCode;
-      } else {
-        // Update the existing VerificationCode if it exists
-        vCode = await VerificationCode.findOne({
-          where: { user: { id: payload.id } },
-        });
-
-        if (!vCode) {
-          throw new AppError("VerificationCode not found for the user.", 404, true);
-        }
-
-        vCode.verificationCode = generatedCode;
-        payload.verificationCode = vCode;
-        vCode.expiresAt = expiresAt;
-      }
-
-      await vCode.save();
-      await payload.save();
-
-      // Send the OTP to the user via email
-      const emailMessage = createStyledEmail(payload, generatedCode);
-
-      await sendMail(payload.email, title, emailMessage);
-
-      const code = { id: vCode.id, verificationCode: vCode.verificationCode, expiresAt: vCode.expiresAt, createdAt: vCode.createdAt }
-
-      return {
-        success: true,
-        message: "Verification Code sent successfully",
-        user: payload,
-        code
-      };
-    } else {
-      throw new AppError("Something went wrong with sending email verification", 500, true);
-    }
-  } catch (error) {
-    console.error("Error sending OTP verification:", error);
-    throw new AppError("Error sending email verification", 500, true);
-  }
-};
-
 
 const activateAccountController = async (email: string, verificationCode: string) => {
   if (!email) {
@@ -179,7 +110,9 @@ const forgetUserPasswordController = async (email: string) => {
   if (!user) {
     throw new AppError("User dose not exist", 404, true);
   }
-  return sendVerificationCode(user, "Request to reset password");
+  const verificationResult = await sendVerificationCode(user, "Request to reset password");
+
+  return verificationResult
 }
 
 const RestUserPasswordController = async (email: string, verificationCode: string, newPassword: string) => {

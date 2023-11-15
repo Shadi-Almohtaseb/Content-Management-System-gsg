@@ -1,8 +1,9 @@
-import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, OneToMany, OneToOne } from "typeorm";
+import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, PrimaryGeneratedColumn, OneToMany, OneToOne } from "typeorm";
 import bcrypt from 'bcrypt';
 import { Product } from "./Product.js";
 import { Address } from "./Address.js";
 import { Order } from "./Order.js";
+import { VerificationCode } from "./VerificationCode.js";
 
 @Entity('shops')
 export class Shop extends BaseEntity {
@@ -33,6 +34,9 @@ export class Shop extends BaseEntity {
     @Column({ nullable: true, unique: true })
     phoneNumber: string
 
+    @Column({ nullable: false, default: false })
+    isVerified: boolean;
+
     @OneToMany(() => Product, products => products.shop)
     products: Partial<Product>[]
 
@@ -41,6 +45,10 @@ export class Shop extends BaseEntity {
 
     @OneToOne(() => Address, address => address.shop)
     address: Partial<Address>
+
+    @OneToOne(() => VerificationCode, verificationCode => verificationCode.shop, { onUpdate: 'CASCADE' })
+    @JoinColumn()
+    verificationCode: Partial<VerificationCode>
 
     @CreateDateColumn({
         type: 'timestamp',

@@ -1,13 +1,19 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../db/entities/User.js';
+import { Shop } from '../db/entities/Shop.js';
+
+interface TokenPayload {
+    id: string;
+    email: string;
+}
+
+const secretKey = process.env.SECRET_KEY || '';
 
 const generateToken = (user: User) => {
-    const payload = {
+    const payload: TokenPayload = {
         id: user.id,
         email: user.email,
     };
-
-    const secretKey = process.env.SECRET_KEY || '';
 
     const options = {
         expiresIn: '1d',
@@ -16,4 +22,17 @@ const generateToken = (user: User) => {
     return jwt.sign(payload, secretKey, options);
 };
 
-export default generateToken;
+const generateShopToken = (shop: Shop) => {
+    const payload: TokenPayload = {
+        id: shop.shop_id,
+        email: shop.email,
+    };
+
+    const options = {
+        expiresIn: '1d',
+    };
+
+    return jwt.sign(payload, secretKey, options);
+};
+
+export { generateToken, generateShopToken };

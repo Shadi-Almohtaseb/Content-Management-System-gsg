@@ -1,5 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./User.js";
+import { Shop } from "./Shop.js";
 
 @Entity('verification-codes')
 export class VerificationCode extends BaseEntity {
@@ -11,6 +12,9 @@ export class VerificationCode extends BaseEntity {
 
     @OneToOne(() => User, user => user.verificationCode, { onDelete: 'CASCADE' })
     user: Partial<User>;
+
+    @OneToOne(() => Shop, shop => shop.verificationCode, { onDelete: 'CASCADE' })
+    shop: Partial<Shop>;
 
     @CreateDateColumn({
         type: 'timestamp',
