@@ -10,7 +10,7 @@ export function notFoundHandler(req: Request, res: Response, next: NextFunction)
 // Custom Error handler middleware 
 export function customErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
   if (err instanceof AppError) {
-    res.status(err.httpCode).json({ error: err.message });
+    res.status(err.httpCode).json({ success: false, error: err.message });
   } else {
     // Handle other errors here
     console.log("Error :( => ", err);

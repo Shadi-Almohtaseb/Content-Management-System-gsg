@@ -1,122 +1,54 @@
 import { User } from "../db/entities/User.js";
 import { AppError } from "../utils/errorHandler.js";
-import generateToken from "../utils/generateToken.js";
-import sendMail from "../utils/sendMail.js";
-import { UserOTPVerification } from "../db/entities/UserOTPVerification.js";
+import { generateToken } from "../utils/generateToken.js";
+import { VerificationCode } from "../db/entities/VerificationCode.js";
 import bcrypt from 'bcrypt';
+import { sendVerificationCode } from "../utils/sendVerificationCode.js";
 
 const signupController = async (payload: User) => {
   const { email } = payload;
-  const user = await User.findOne({ where: { email }, relations: ["otp"] });
+  const user = await User.findOne({ where: { email }, relations: ["verificationCode"] });
 
   if (user) {
     if (user.isVerified) {
       throw new AppError("User already exists and is verified", 409, true);
     } else {
-      const verificationResult = await sendOTPVerification(user);
-      return verificationResult;
+      const verificationResult = await sendVerificationCode(user, "Verify your email");
+      return verificationResult
     }
   } else {
     const newUser = User.create(payload);
     await newUser.save();
-    const verificationResult = await sendOTPVerification(newUser);
-    return verificationResult;
+    const verificationResult = await sendVerificationCode(newUser, "Verify your email");
+    return verificationResult
   }
 };
 
-
-const sendOTPVerification = async (payload: User) => {
-  try {
-    if (payload) {
-      // Generate a 6-digit OTP
-      const generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-
-      const OTP_EXPIRATION_TIME = 60 * 60 * 1000; // 1 hour expiration time
-      const expiresAt = new Date(Date.now() + OTP_EXPIRATION_TIME);
-      let userOTP;
-
-      if (!payload.otp) {
-        // Create a new UserOTPVerification if it doesn't exist
-        userOTP = UserOTPVerification.create({
-          otp: generatedOTP,
-          user: payload,
-          expiresAt: expiresAt,
-        });
-      } else {
-        // Update the existing UserOTPVerification if it exists
-        userOTP = await UserOTPVerification.findOne({
-          where: { user: { id: payload.id } },
-        });
-
-        if (!userOTP) {
-          throw new AppError("UserOTPVerification not found for the user.", 404, true);
-        }
-
-        userOTP.otp = generatedOTP;
-        payload.otp = userOTP;
-        userOTP.expiresAt = expiresAt;
-      }
-
-      await userOTP.save();
-      await payload.save();
-
-      // Send the OTP to the user via email
-      const emailMessage = `<h3>Hello ${payload.userName}, Enter <b>${generatedOTP}</b> in the app to verify your email address and complete</h3>
-      <p>This code <b>Expires in 1 hour</b>.</p>`;
-
-      await sendMail(payload.email, "Verify your email", emailMessage);
-
-      const response = {
-        success: true,
-        message: "Verification OTP sent successfully",
-        user: payload,
-      };
-
-      const returnedOTP = { id: userOTP.id, otp: userOTP.otp, expiresAt: userOTP.expiresAt, createdAt: userOTP.createdAt }
-
-      if (!payload.otp) {
-        return {
-          ...response,
-          returnedOTP
-        };
-      }
-
-      return response;
-    } else {
-      throw new AppError("Something went wrong with sending email verification", 500, true);
-    }
-  } catch (error) {
-    console.error("Error sending OTP verification:", error);
-    throw new AppError("Error sending email verification", 500, true);
-  }
-};
-
-
-const activateAccountController = async (userId: string, otp: string) => {
-  if (!userId) {
-    throw new AppError("User ID is required", 400, true);
+const activateAccountController = async (email: string, verificationCode: string) => {
+  if (!email) {
+    throw new AppError("email is required", 400, true);
   }
 
-  if (!otp) {
-    throw new AppError("OTP is required", 400, true);
+  if (!verificationCode) {
+    throw new AppError("OTP Code is required", 400, true);
   }
 
   // Check if the user exists
-  const user = await User.findOneBy({ id: userId });
+  const user = await User.findOneBy({ email });
   if (!user) {
     throw new AppError("User does not exist", 404, true);
   }
 
   // Find the corresponding user OTP
-  const userOTP = await UserOTPVerification.findOne({ where: { otp }, relations: ["user"] })
+  const vCode = await VerificationCode.findOne({ where: { verificationCode }, relations: ["user"] })
 
   // Check OTP validity and expiration
-  if (!userOTP || userOTP.user.id !== user.id) {
-    throw new AppError("Invalid OTP", 400, true);
+  if (!vCode || vCode.user.id !== user.id) {
+    throw new AppError("Invalid Code", 400, true);
   }
 
-  if (userOTP.expiresAt < new Date()) {
-    throw new AppError("OTP has expired", 400, true);
+  if (vCode.expiresAt < new Date()) {
+    throw new AppError("Code has been expired", 400, true);
   }
 
   // Check if the account is already activated
@@ -124,16 +56,16 @@ const activateAccountController = async (userId: string, otp: string) => {
     throw new AppError("Account already activated", 400, true);
   }
 
-  userOTP.user = null as any;
-  await userOTP.save();
+  vCode.user = null as any;
+  await vCode.save();
 
   // Activate the account and generate a token
   user.isVerified = true;
-  user.otp = null as any;
+  user.verificationCode = null as any;
   await user.save();
 
   // delete the OTP from the database 
-  await userOTP.remove();
+  await vCode.remove();
 
   const token = generateToken(user);
 
@@ -147,14 +79,14 @@ const activateAccountController = async (userId: string, otp: string) => {
 const loginController = async (payload: User) => {
   const { email, password } = payload;
 
-  const user = await User.findOne({ where: { email } });
+  const user = await User.findOne({ where: { email }, relations: ["verificationCode"] });
 
   if (!user) {
     throw new AppError("User Not Found", 404, true);
   }
 
   if (!user.isVerified) {
-    await sendOTPVerification(user);
+    await sendVerificationCode(user, "Verify your email");
     throw new AppError("Account not activated, check your email to enter the code.", 400, true);
   }
 
@@ -173,5 +105,66 @@ const loginController = async (payload: User) => {
   };
 }
 
+const forgetUserPasswordController = async (email: string) => {
+  const user = await User.findOne({ where: { email }, relations: ["verificationCode"] });
+  if (!user) {
+    throw new AppError("User dose not exist", 404, true);
+  }
+  const verificationResult = await sendVerificationCode(user, "Request to reset password");
 
-export { signupController, activateAccountController, loginController }
+  return verificationResult
+}
+
+const RestUserPasswordController = async (email: string, verificationCode: string, newPassword: string) => {
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    throw new AppError("User dose not exist", 404, true);
+  }
+
+  const vCode = await VerificationCode.findOne({ where: { verificationCode }, relations: ["user"] })
+
+  if (!vCode || vCode.user.id !== user.id) {
+    throw new AppError("Invalid Code", 400, true);
+  }
+
+  if (vCode.expiresAt < new Date()) {
+    throw new AppError("Code has been expired", 400, true);
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10)
+  await user.save();
+
+  vCode.user = null as any;
+  await vCode.save();
+
+  user.verificationCode = null as any;
+  await user.save();
+
+  await vCode.remove();
+}
+
+const updateUserPasswordController = async (user: User, oldPassword: string, newPassword: string) => {
+  const passwordMatching = await bcrypt.compare(oldPassword, user?.password || '')
+
+  if (!passwordMatching) {
+    throw new AppError("Invalid credentials", 400, true);
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10)
+  await user.save();
+
+  return {
+    success: true,
+    message: "Password reset successful",
+  };
+}
+
+
+export {
+  signupController,
+  activateAccountController,
+  loginController,
+  updateUserPasswordController,
+  forgetUserPasswordController,
+  RestUserPasswordController
+}

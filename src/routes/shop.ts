@@ -1,14 +1,14 @@
 import express from 'express';
-import { activateAccountController, loginController, updateUserPasswordController, signupController, forgetUserPasswordController, RestUserPasswordController } from '../controllers/user.js';
-import { authenticateUser } from '../middleware/auth.js';
+import { RestShopPasswordController, activateAccountController, forgetShopPasswordController, loginShopController, signupShopController, updateShopPasswordController } from '../controllers/shop.js';
 import { ExpressNS } from '../../@types/index.js';
+import { authenticateShop } from '../middleware/auth.js';
 const router = express.Router();
 
-/* POST Signup user. */
+/* POST Signup Shop. */
 router.post("/signup", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    if (req.body.userName && req.body.password && req.body.email) {
-      const data = await signupController(req.body);
+    if (req.body.shopName && req.body.password && req.body.email && req.body.phoneNumber) {
+      const data = await signupShopController(req.body);
       return res.status(201).json(data)
     } else {
       return res.status(400).json("All fields are required");
@@ -18,14 +18,14 @@ router.post("/signup", async (req: express.Request, res: express.Response, next:
   }
 })
 
-/*POST activate user account (create in db) */
+/*POST activate shop account (create in db) */
 router.post("/activation", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const { email, otp } = req.body;
 
     const data = await activateAccountController(email, otp);
     return res.status(201).cookie(
-      "userToken", data.token,
+      "shopToken", data.token,
       { httpOnly: true, secure: true, sameSite: "none" }).json(data
       );
 
@@ -34,13 +34,13 @@ router.post("/activation", async (req: express.Request, res: express.Response, n
   }
 })
 
-/* POST Login user. */
+/* POST Login shop. */
 router.post("/login", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     if (req.body.email && req.body.password) {
-      const data = await loginController(req.body);
+      const data = await loginShopController(req.body);
       return res.status(200).cookie(
-        "userToken", data.token,
+        "shopToken", data.token,
         { httpOnly: true, secure: true, sameSite: "none" }).json(data)
     } else {
       return res.status(400).json("All fields are required");
@@ -50,33 +50,33 @@ router.post("/login", async (req: express.Request, res: express.Response, next: 
   }
 })
 
-/*POST Logout User */
+/*POST Logout Shop */
 router.post("/logout", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    return res.status(200).clearCookie("userToken").json({ success: true, message: "User logged out successfully" })
+    return res.status(200).clearCookie("shopToken").json({ success: true, message: "Shop logged out successfully" })
   } catch (error) {
     next(error)
   }
 })
 
-/* POST Forget user password */
+/* POST Forget shop password */
 router.post("/forget-password", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const { email } = req.body;
     if (!email) res.status(400).json({ success: false, message: "Email is required" })
-    const data = await forgetUserPasswordController(email);
+    const data = await forgetShopPasswordController(email);
     return res.status(200).json({ success: true, message: "Verification Code sent successfully", verificationCode: data.code })
   } catch (error) {
     next(error)
   }
 })
 
-/* PUT Reset User Password */
+/* PUT Reset Shop Password */
 router.put("/reset-password", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const { email, verificationCode, newPassword } = req.body;
     if (!email || !verificationCode || !newPassword) res.status(400).json({ success: false, message: "All fields are required" })
-    await RestUserPasswordController(email, verificationCode, newPassword);
+    await RestShopPasswordController(email, verificationCode, newPassword);
     return res.status(200).json({ success: true, message: "Password updated successfully" })
   } catch (error) {
     next(error)
@@ -84,14 +84,14 @@ router.put("/reset-password", async (req: express.Request, res: express.Response
 })
 
 /* PUT Reset User Password */
-router.put("/password", authenticateUser, async (req: ExpressNS.RequestWithUser, res: express.Response, next: express.NextFunction) => {
+router.put("/password", authenticateShop, async (req: ExpressNS.RequestWithShop, res: express.Response, next: express.NextFunction) => {
   try {
-    const user = req.user;
-    if (!user) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    const shop = req.shop;
+    if (!shop) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
 
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword) res.status(400).json({ success: false, message: "All fields are required" })
-    await updateUserPasswordController(user, oldPassword, newPassword);
+    await updateShopPasswordController(shop, oldPassword, newPassword);
     return res.status(200).json({ success: true, message: "Password updated successfully" })
   } catch (error) {
     next(error)
