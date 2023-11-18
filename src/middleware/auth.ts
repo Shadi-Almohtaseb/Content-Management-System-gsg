@@ -17,6 +17,9 @@ const authenticateUser: RequestHandler<any, any, Record<string, any>, any, Recor
     const decoded = jwt.decode(token, { json: true });
     if (decoded?.email) {
       const user = await User.findOneBy({ email: decoded.email });
+      if (user?.isDeleted || !user?.isVerified) {
+        (req as ExpressNS.RequestWithUser).user = null;
+      }
       (req as ExpressNS.RequestWithUser).user = user || null;
     } else {
       (req as ExpressNS.RequestWithUser).user = null;
@@ -40,6 +43,9 @@ const authenticateShop: RequestHandler<any, any, Record<string, any>, any, Recor
     const decoded = jwt.decode(token, { json: true });
     if (decoded?.email) {
       const shop = await Shop.findOneBy({ email: decoded.email });
+      if (shop?.isDeleted || !shop?.isVerified) {
+        (req as ExpressNS.RequestWithShop).shop = null;
+      }
       (req as ExpressNS.RequestWithShop).shop = shop || null;
     } else {
       (req as ExpressNS.RequestWithShop).shop = null;

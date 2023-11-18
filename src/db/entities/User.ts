@@ -33,6 +33,9 @@ export class User extends BaseEntity {
     @Column({ nullable: false, default: false })
     isVerified: boolean;
 
+    @Column({ nullable: false, default: false })
+    isDeleted: boolean;
+
     @OneToMany(() => Order, order => order.user)
     orders: Partial<Order>[]
 

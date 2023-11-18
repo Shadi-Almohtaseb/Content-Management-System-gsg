@@ -1,5 +1,5 @@
 import express from 'express';
-import { activateAccountController, loginController, updateUserPasswordController, signupController, forgetUserPasswordController, RestUserPasswordController } from '../controllers/user.js';
+import { activateAccountController, loginController, updateUserPasswordController, signupController, forgetUserPasswordController, RestUserPasswordController, getUserController, updateUserProfileController } from '../controllers/user.js';
 import { authenticateUser } from '../middleware/auth.js';
 import { ExpressNS } from '../../@types/index.js';
 const router = express.Router();
@@ -93,6 +93,42 @@ router.put("/password", authenticateUser, async (req: ExpressNS.RequestWithUser,
     if (!oldPassword || !newPassword) res.status(400).json({ success: false, message: "All fields are required" })
     await updateUserPasswordController(user, oldPassword, newPassword);
     return res.status(200).json({ success: true, message: "Password updated successfully" })
+  } catch (error) {
+    next(error)
+  }
+})
+
+/* GET get user */
+router.get("/:id", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  try {
+    const { id } = req.params;
+    const data = await getUserController(id);
+    return res.status(200).json(data)
+  } catch (error) {
+    next(error)
+  }
+})
+
+/* PUT update user profile */
+router.put("/", authenticateUser, async (req: ExpressNS.RequestWithUser, res: express.Response, next: express.NextFunction) => {
+  try {
+    const user = req.user;
+    if (!user) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    const data = await updateUserProfileController(user, req.body);
+    return res.status(200).json(data)
+  } catch (error) {
+    next(error)
+  }
+})
+
+/* DELETE delete user */
+router.delete("/", authenticateUser, async (req: ExpressNS.RequestWithUser, res: express.Response, next: express.NextFunction) => {
+  try {
+    const user = req.user;
+    if (!user) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    user.isDeleted = true;
+    await user.save();
+    return res.status(200).clearCookie("userToken").json({ success: true, message: "User deleted successfully" })
   } catch (error) {
     next(error)
   }

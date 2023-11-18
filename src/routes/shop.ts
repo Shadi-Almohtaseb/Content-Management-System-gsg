@@ -1,5 +1,5 @@
 import express from 'express';
-import { RestShopPasswordController, activateAccountController, forgetShopPasswordController, loginShopController, signupShopController, updateShopPasswordController } from '../controllers/shop.js';
+import { RestShopPasswordController, activateAccountController, forgetShopPasswordController, getShopController, loginShopController, signupShopController, updateShopController, updateShopPasswordController } from '../controllers/shop.js';
 import { ExpressNS } from '../../@types/index.js';
 import { authenticateShop } from '../middleware/auth.js';
 const router = express.Router();
@@ -93,6 +93,42 @@ router.put("/password", authenticateShop, async (req: ExpressNS.RequestWithShop,
     if (!oldPassword || !newPassword) res.status(400).json({ success: false, message: "All fields are required" })
     await updateShopPasswordController(shop, oldPassword, newPassword);
     return res.status(200).json({ success: true, message: "Password updated successfully" })
+  } catch (error) {
+    next(error)
+  }
+})
+
+/* GET get shop */
+router.get("/:id", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  try {
+    const { id } = req.params;
+    const data = await getShopController(id);
+    return res.status(200).json(data)
+  } catch (error) {
+    next(error)
+  }
+})
+
+/* PUT update shop profile */
+router.put("/", authenticateShop, async (req: ExpressNS.RequestWithShop, res: express.Response, next: express.NextFunction) => {
+  try {
+    const shop = req.shop;
+    if (!shop) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    const data = await updateShopController(shop, req.body);
+    return res.status(200).json(data)
+  } catch (error) {
+    next(error)
+  }
+})
+
+/* DELETE delete shop */
+router.delete("/", authenticateShop, async (req: ExpressNS.RequestWithShop, res: express.Response, next: express.NextFunction) => {
+  try {
+    const shop = req.shop;
+    if (!shop) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    shop.isDeleted = true;
+    await shop.save();
+    return res.status(200).json({ success: true, message: "Shop deleted successfully" })
   } catch (error) {
     next(error)
   }

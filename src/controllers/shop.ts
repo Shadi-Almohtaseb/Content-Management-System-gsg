@@ -159,11 +159,40 @@ const updateShopPasswordController = async (shop: Shop, oldPassword: string, new
   };
 }
 
+const getShopController = async (id: string) => {
+  const shop = await Shop.findOne({ where: { shop_id: id } });
+  if (!shop) {
+    throw new AppError("Shop dose not exist", 404, true);
+  }
+
+  return {
+    success: true,
+    shop
+  };
+}
+
+const updateShopController = async (shop: Shop, payload: Shop) => {
+  const { shopName, phoneNumber, avatar, description } = payload;
+  shop.shopName = shopName || shop.shopName;
+  shop.phoneNumber = phoneNumber || shop.phoneNumber;
+  shop.avatar = avatar || shop.avatar;
+  shop.description = description || shop.description;
+  await shop.save();
+
+  return {
+    success: true,
+    message: "Updated successfully",
+    shop
+  };
+}
+
 export {
   signupShopController,
   activateAccountController,
   loginShopController,
   forgetShopPasswordController,
   RestShopPasswordController,
-  updateShopPasswordController
+  updateShopPasswordController,
+  getShopController,
+  updateShopController
 }
