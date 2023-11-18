@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, ManyToMany } from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, ManyToMany } from "typeorm";
 import { Product } from "./Product.js";
 
 @Entity('categories')
@@ -6,7 +6,7 @@ export class Category extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
     id: number;
 
-    @Column({ length: 255, nullable: false })
+    @Column({ length: 255, nullable: false, unique: true })
     name: string
 
     @Column({ type: 'text', nullable: false })
@@ -15,12 +15,6 @@ export class Category extends BaseEntity {
     @Column({ type: 'text', nullable: true })
     description: string
 
-    @ManyToMany(() => Product, product => product.category)
+    @ManyToMany(() => Product, products => products.categories)
     products: Partial<Product>[]
-
-    @CreateDateColumn({
-        type: 'timestamp',
-        default: () => "CURRENT_TIMESTAMP(6)"
-    })
-    createdAt: Date;
 }

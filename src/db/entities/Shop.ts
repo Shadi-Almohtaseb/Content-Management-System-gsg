@@ -37,6 +37,9 @@ export class Shop extends BaseEntity {
     @Column({ nullable: false, default: false })
     isVerified: boolean;
 
+    @Column({ nullable: false, default: false })
+    isDeleted: boolean;
+
     @OneToMany(() => Product, products => products.shop)
     products: Partial<Product>[]
 

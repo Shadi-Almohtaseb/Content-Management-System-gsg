@@ -85,6 +85,10 @@ const loginController = async (payload: User) => {
     throw new AppError("User Not Found", 404, true);
   }
 
+  if (user.isDeleted) {
+    throw new AppError("User dose not exist", 404, true);
+  }
+
   if (!user.isVerified) {
     await sendVerificationCode(user, "Verify your email");
     throw new AppError("Account not activated, check your email to enter the code.", 400, true);
@@ -159,6 +163,40 @@ const updateUserPasswordController = async (user: User, oldPassword: string, new
   };
 }
 
+const getUserController = async (userId: string) => {
+  const user = await User.findOne({ where: { id: userId } });
+  if (!user) {
+    throw new AppError("User dose not exist", 404, true);
+  }
+
+  if (user.isDeleted) {
+    throw new AppError("User dose not exist", 404, true);
+  }
+
+  if (user.isVerified) {
+    throw new AppError("User not verified", 404, true);
+  }
+
+  return {
+    success: true,
+    user
+  };
+}
+
+const updateUserProfileController = async (userIn: User, payload: User) => {
+  const { userName, phoneNumber, avatar } = payload;
+
+  userIn.userName = userName || userIn.userName;
+  userIn.phoneNumber = phoneNumber || userIn.phoneNumber;
+  userIn.avatar = avatar || userIn.avatar;
+  await userIn.save();
+
+  return {
+    success: true,
+    message: "Updated successfully",
+    userIn
+  };
+}
 
 export {
   signupController,
@@ -166,5 +204,7 @@ export {
   loginController,
   updateUserPasswordController,
   forgetUserPasswordController,
-  RestUserPasswordController
+  RestUserPasswordController,
+  getUserController,
+  updateUserProfileController
 }
