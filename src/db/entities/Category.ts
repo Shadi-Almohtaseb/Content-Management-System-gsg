@@ -15,6 +15,6 @@ export class Category extends BaseEntity {
     @Column({ type: 'text', nullable: true })
     description: string
 
-    @ManyToMany(() => Product, products => products.categories)
+    @ManyToMany(() => Product, product => product.categories)
     products: Partial<Product>[]
 }

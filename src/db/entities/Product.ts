@@ -2,8 +2,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, M
 import { Shop } from "./Shop.js";
 import { Category } from "./Category.js";
 import { Tag } from "./Tag.js";
-import { Color } from "./Color.js";
-import { Size } from "./Size.js";
+import { ProductVariant } from "./ProductVariants.js";
 
 @Entity('products')
 export class Product extends BaseEntity {
@@ -19,37 +18,21 @@ export class Product extends BaseEntity {
     @Column({ type: "text", nullable: true })
     long_description: string
 
-    @Column('simple-array', { nullable: true }) //edit
+    @Column('simple-array', { nullable: false })
     images: string[];
-
-    @Column({ nullable: false })
-    originalPrice: number
-
-    @Column({ nullable: true })
-    discountPrice: number
-
-    @Column({ nullable: false })
-    stock: number
-
 
     @Column({ type: 'float', nullable: true })
     rating: number;
 
-    @Column({ nullable: true })
-    sold_out: number
-
     @ManyToOne(() => Shop, shop => shop.products)
     shop: Partial<Shop>
 
-    @OneToMany(() => Size, sizes => sizes.product)
-    sizes: Partial<Size[]>
+    @OneToMany(() => ProductVariant, variant => variant.product)
+    variants: Partial<ProductVariant[]>;
 
-    @OneToMany(() => Color, colors => colors.product)
-    colors: Partial<Color[]>
-
-    @ManyToMany(() => Category, categories => categories.products)
-    @JoinTable()
-    categories: Partial<Category[]>;
+    @ManyToMany(() => Category, category => category.products)
+    @JoinTable({ name: "product_categories" })
+    categories: Category[];
 
     @ManyToMany(() => Tag, tag => tag.products)
     @JoinTable()

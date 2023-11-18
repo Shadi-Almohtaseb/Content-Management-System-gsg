@@ -9,8 +9,8 @@ router.post("/", async (req: express.Request, res: express.Response, next: expre
     if (!req.body.name) {
       throw new AppError("Some fields are missing", 400, true);
     }
-    const data = await createTagController(req.body);
-    res.status(201).json({ success: true, message: "Tag created successfully", data });
+    const tag = await createTagController(req.body);
+    res.status(201).json({ success: true, message: "Tag created successfully", tag });
   } catch (error) {
     next(error);
   }
@@ -20,8 +20,8 @@ router.post("/", async (req: express.Request, res: express.Response, next: expre
 /* GET get all Tags */
 router.get("/", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    const data = await getAllTagsController();
-    res.status(200).json(data);
+    const tags = await getAllTagsController();
+    res.status(200).json(tags);
   } catch (error) {
     next(error);
   }
@@ -30,8 +30,8 @@ router.get("/", async (req: express.Request, res: express.Response, next: expres
 /* GET Tag by id */
 router.get("/:id", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    const data = await getTagController(Number(req.params.id));
-    res.status(200).json({ success: true, message: "Tags retrieved successfully", data });
+    const tag = await getTagController(Number(req.params.id));
+    res.status(200).json({ success: true, message: "Tags retrieved successfully", tag });
   } catch (error) {
     next(error);
   }
@@ -61,8 +61,8 @@ router.delete("/:id", async (req: express.Request, res: express.Response, next: 
 /* PUT update Tag */
 router.put("/:id", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    const data = await updateTagController(Number(req.params.id), req.body);
-    res.status(200).json({ success: true, message: "Tags retrieved successfully", data });
+    const tag = await updateTagController(Number(req.params.id), req.body);
+    res.status(200).json({ success: true, message: "Tags retrieved successfully", tag });
   } catch (error) {
     next(error);
   }

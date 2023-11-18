@@ -1,4 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
+import { UploadedFile } from 'express-fileupload';
+import { AppError } from './errorHandler.js';
 
 export const getPublicIdFromCloudinaryUrl = (imageUrl: string) => {
   // Split the Cloudinary URL by '/'
@@ -25,3 +27,22 @@ export const deleteImageFromCloudinary = (publicId: string) => {
   }
   return null;
 };
+
+/**
+ * Uploads an image to Cloudinary.
+ * @param file - The file to be uploaded.
+ * @returns {Promise<any>} - A promise that resolves with the Cloudinary response.
+ */
+export async function uploadImageToCloudinary(file: UploadedFile, folder: string): Promise<any> {
+  const allowedMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'video/mp4'];
+
+  if (!file || !allowedMimeTypes.includes(file.mimetype)) {
+    throw new AppError(`Invalid file type for ${file?.name || 'unknown file'}`, 400, true);
+  }
+
+  // Convert image data to base64
+  const base64Image = file.data.toString('base64');
+
+  // Upload image to Cloudinary
+  return cloudinary.uploader.upload(`data:${file.mimetype};base64,${base64Image}`, { folder });
+}
