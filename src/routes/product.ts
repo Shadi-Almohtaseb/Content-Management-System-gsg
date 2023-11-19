@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticateShop } from '../middleware/auth.js';
 import { ExpressNS } from '../../@types/index.js';
-import { createProductController, getAllProductController, getProductByIdController } from '../controllers/product.js';
+import { createProductController, deleteProductController, getAllProductController, getProductByIdController } from '../controllers/product.js';
 import { AppError } from '../utils/errorHandler.js';
 import { UploadedFile } from 'express-fileupload';
 import { uploadImageToCloudinary } from '../utils/cloudinaryMethods.js';
@@ -13,7 +13,7 @@ router.post("/", authenticateShop, async (req: ExpressNS.RequestWithShop, res: e
   try {
     const shop = req.shop;
     if (!shop) {
-      throw new AppError("Shop not found", 404, true);
+      throw new AppError("you are unauthorized, login to continue", 404, true);
     }
 
     if (!req.body.name || !req.body.long_description || !JSON.parse(req.body.variants).map((item: ProductVariant) => item.originalPrice) || !req.body.categories || !req.body.tags) {
@@ -81,5 +81,25 @@ router.get("/", async (req: express.Request, res: express.Response, next: expres
     next(error);
   }
 })
+
+/* DELETE update product */
+router.delete("/:id", authenticateShop, async (req: ExpressNS.RequestWithShop, res: express.Response, next: express.NextFunction) => {
+  try {
+    const shop = req.shop;
+    if (!shop) {
+      throw new AppError("you are unauthorized, login to continue", 404, true);
+    }
+
+    const productId = Number(req.params.id);
+    await deleteProductController(productId, shop);
+
+    res.status(200).json({
+      status: "success",
+      message: "Product deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router;

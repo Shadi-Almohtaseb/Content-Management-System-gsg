@@ -16,5 +16,5 @@ export class Category extends BaseEntity {
     description: string
 
     @ManyToMany(() => Product, product => product.categories)
-    products: Partial<Product>[]
+    products: Partial<Product[]>
 }

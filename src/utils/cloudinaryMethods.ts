@@ -2,31 +2,48 @@ import { v2 as cloudinary } from 'cloudinary';
 import { UploadedFile } from 'express-fileupload';
 import { AppError } from './errorHandler.js';
 
-export const getPublicIdFromCloudinaryUrl = (imageUrl: string) => {
-  // Split the Cloudinary URL by '/'
-  const urlParts = imageUrl.split('/');
+export const getPublicIdFromCloudinaryUrl = (imageUrls: string | string[]) => {
+  // Ensure imageUrls is an array
+  const urls = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
 
-  // Get the public ID (3rd element from the end)
-  const filename = urlParts[urlParts.length - 1];
-  // Remove the file extension
-  const publicId = filename.split('.')[0];
+  const publicIds = urls.map(imageUrl => {
+    // Split the Cloudinary URL by '/'
+    const urlParts = imageUrl.split('/');
 
-  return publicId || null;
-}
+    // Get the public ID (3rd element from the end)
+    const filename = urlParts[urlParts.length - 1];
+    // Remove the file extension
+    return filename.split('.')[0] || null;
+  });
 
-export const deleteImageFromCloudinary = (publicId: string) => {
-  if (publicId) {
-    // Delete image from Cloudinary using the public ID
-    return cloudinary.uploader.destroy(publicId, (error, result) => {
-      if (error) {
-        console.error("Error deleting image from Cloudinary:", error);
-      } else {
-        console.log("Image deleted from Cloudinary:", result);
-      }
-    });
-  }
-  return null;
+  return publicIds.length === 1 ? publicIds[0] : publicIds;
 };
+
+export const deleteImageFromCloudinary = (publicIds: string | string[]) => {
+  // Ensure publicIds is an array
+  const ids = Array.isArray(publicIds) ? publicIds : [publicIds];
+
+  // Delete images from Cloudinary using the public IDs
+  const deletePromises = ids.map(publicId => {
+    if (publicId) {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.destroy(publicId, (error, result) => {
+          if (error) {
+            console.error("Error deleting image from Cloudinary:", error);
+            reject(error);
+          } else {
+            console.log("Image deleted from Cloudinary:", result);
+            resolve(result);
+          }
+        });
+      });
+    }
+    return null;
+  });
+
+  return Promise.all(deletePromises);
+};
+
 
 /**
  * Uploads an image to Cloudinary.

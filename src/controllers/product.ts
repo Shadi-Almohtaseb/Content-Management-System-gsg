@@ -6,6 +6,8 @@ import { Shop } from "../db/entities/Shop.js";
 import { Tag } from "../db/entities/Tag.js";
 import { ProductVariant } from "../db/entities/ProductVariants.js";
 import { pagination } from "../../@types/index.js";
+import { AppError } from "../utils/errorHandler.js";
+import { deleteImageFromCloudinary, getPublicIdFromCloudinaryUrl } from "../utils/cloudinaryMethods.js";
 
 const createProductController = async (payload: Product & { variants: ProductVariant[] }, shop: Shop) => {
   return dataSource.manager.transaction(async transaction => {
@@ -13,22 +15,16 @@ const createProductController = async (payload: Product & { variants: ProductVar
       ...payload,
       shop: shop,
     });
-    console.log("payload.categories", payload.categories);
 
     newProduct.categories = await Category.findBy({
       id: In(payload.categories as Category[])
     }) as Category[];
 
-    console.log("newProduct.categories", newProduct.categories);
-
-
-    console.log("payload.tags", payload.tags);
     newProduct.tags = await Tag.findBy({
       id: In(payload.tags as Tag[])
     }) as Tag[];
 
     await transaction.save(newProduct);
-    console.log("newProduct.tags", newProduct.tags);
 
     if (payload.variants && payload.variants.length > 0) {
       const variants = payload.variants.map(variantData => {
@@ -50,7 +46,7 @@ const createProductController = async (payload: Product & { variants: ProductVar
 const getProductByIdController = async (id: number) => {
   const product = Product.findOne({ where: { id: id }, relations: ['variants', 'shop'], select: { shop: { shop_id: true, avatar: true, shopName: true, email: true } }, });
   if (!product) {
-    throw new Error("Product not found");
+    throw new AppError("Product not found", 404, true);
   }
   return product;
 }
@@ -74,4 +70,33 @@ const getAllProductController = async (payload: pagination) => {
   return products;
 }
 
-export { createProductController, getProductByIdController, getAllProductController }
+const deleteProductController = async (id: number, shop: Shop) => {
+  const product = await Product.findOne({ where: { id: id }, relations: ['shop', 'variants'] });
+  if (!product) {
+    throw new AppError("Product not found", 404, true);
+  }
+
+  if (product.shop.shop_id !== shop?.shop_id) {
+    throw new AppError("You are not authorized to perform this action", 403, true);
+  }
+
+  await ProductVariant.delete({ product: { id: product.id } });
+
+  // remove product with cascade
+  await product.remove();
+
+  // Delete image from Cloudinary using the public ID
+  let publicId = getPublicIdFromCloudinaryUrl(product.images);
+  if (!publicId) {
+    throw new AppError("Something went wrong with deleting image", 400, true);
+  }
+  publicId = `products/${publicId}`
+  await deleteImageFromCloudinary(publicId);
+}
+
+export {
+  createProductController,
+  getProductByIdController,
+  getAllProductController,
+  deleteProductController
+}

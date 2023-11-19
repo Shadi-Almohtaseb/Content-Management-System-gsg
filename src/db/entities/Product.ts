@@ -27,7 +27,7 @@ export class Product extends BaseEntity {
     @ManyToOne(() => Shop, shop => shop.products)
     shop: Partial<Shop>
 
-    @OneToMany(() => ProductVariant, variant => variant.product)
+    @OneToMany(() => ProductVariant, variant => variant.product, { onDelete: "CASCADE" })
     variants: Partial<ProductVariant[]>;
 
     @ManyToMany(() => Category, category => category.products)
@@ -35,7 +35,7 @@ export class Product extends BaseEntity {
     categories: Category[];
 
     @ManyToMany(() => Tag, tag => tag.products)
-    @JoinTable()
+    @JoinTable({ name: "product_tags" })
     tags: Tag[];
 
     // @Column({ nullable: true })

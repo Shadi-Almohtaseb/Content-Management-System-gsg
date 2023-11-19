@@ -10,11 +10,5 @@ export class Tag extends BaseEntity {
     name: string
 
     @ManyToMany(() => Product, product => product.tags)
-    products: Partial<Product>[]
-
-    @CreateDateColumn({
-        type: 'timestamp',
-        default: () => "CURRENT_TIMESTAMP(6)"
-    })
-    createdAt: Date;
+    products: Partial<Product[]>
 }
