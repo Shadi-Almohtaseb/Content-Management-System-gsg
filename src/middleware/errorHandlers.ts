@@ -13,7 +13,7 @@ export function customErrorHandler(err: any, req: Request, res: Response, next: 
     res.status(err.httpCode).json({ success: false, error: err.message });
   } else {
     // Handle other errors here
-    console.log("Error :( => ", err);
+    console.error("Error :( => ", err);
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 }

@@ -1,5 +1,5 @@
-import "./config.js"
 import "express-async-errors";
+import "./config.js"
 import express from 'express'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
@@ -45,11 +45,11 @@ app.use('/tags', tagsRouter);
 // catch 404 and forward to error handler
 app.use(notFoundHandler)
 
-// Custom Error handler middleware
-app.use(customErrorHandler)
-
 // Default error handler
 app.use(DefaultErrorHandler)
+
+// Custom Error handler middleware
+app.use(customErrorHandler)
 
 // Connect to DB
 dataSource.initialize().then(() => {
