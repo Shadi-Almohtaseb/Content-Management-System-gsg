@@ -8,7 +8,6 @@
    "scripts": {
       "start": "ts-node src/index.ts",
       "build-tsc": "tsc -w",
-      "build": "tsc",
       "run-watch": "nodemon ./dist/app.js",
       "dev": "concurrently \"npm:build-tsc\"  \"npm:run-watch\"",
       "typeorm": "typeorm-ts-node-commonjs"
