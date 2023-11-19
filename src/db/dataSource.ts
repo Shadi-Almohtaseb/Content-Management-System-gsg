@@ -7,8 +7,7 @@ import { Category } from "./entities/Category.js";
 import { Address } from "./entities/Address.js";
 import { VerificationCode } from "./entities/VerificationCode.js";
 import { Tag } from "./entities/Tag.js";
-import { Color } from "./entities/Color.js";
-import { Size } from "./entities/Size.js";
+import { ProductVariant } from "./entities/ProductVariants.js";
 
 const dataSource = new DataSource({
     type: 'mysql',
@@ -25,8 +24,7 @@ const dataSource = new DataSource({
         Category,
         Tag,
         Address,
-        Color,
-        Size,
+        ProductVariant,
         VerificationCode
     ],
     migrations: ['./**/migration/*.ts'],

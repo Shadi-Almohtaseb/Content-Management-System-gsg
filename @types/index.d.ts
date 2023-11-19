@@ -4,6 +4,7 @@ interface pagination {
     page: string;
     pageSize: string;
     q: string
+    category?: string;
 }
 
 namespace ExpressNS {

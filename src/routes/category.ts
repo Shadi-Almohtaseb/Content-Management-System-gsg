@@ -31,8 +31,8 @@ router.post("/", async (req: express.Request, res: express.Response, next: expre
     const cloudinaryResponse = await cloudinary.uploader.upload(`data:${uploadedFile.mimetype};base64,${base64Image}`, { folder: 'categories' });
 
     // Create category with the Cloudinary URL
-    const data = await createCategoryController(req.body, cloudinaryResponse.secure_url);
-    res.status(201).json({ success: true, message: "Category created successfully", data });
+    const category = await createCategoryController(req.body, cloudinaryResponse.secure_url);
+    res.status(201).json({ success: true, message: "Category created successfully", category });
   } catch (error) {
     next(error);
   }
@@ -42,8 +42,8 @@ router.post("/", async (req: express.Request, res: express.Response, next: expre
 /* GET get all categories */
 router.get("/", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    const data = await getAllCategoriesController();
-    res.status(200).json(data);
+    const categories = await getAllCategoriesController();
+    res.status(200).json(categories);
   } catch (error) {
     next(error);
   }
@@ -52,8 +52,8 @@ router.get("/", async (req: express.Request, res: express.Response, next: expres
 /* GET category by id */
 router.get("/:id", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    const data = await getCategoryController(Number(req.params.id));
-    res.status(200).json({ success: true, message: "Categories retrieved successfully", data });
+    const category = await getCategoryController(Number(req.params.id));
+    res.status(200).json({ success: true, message: "Categories retrieved successfully", category });
   } catch (error) {
     next(error);
   }
@@ -134,11 +134,11 @@ router.put("/:id", async (req, res, next) => {
         image: cloudinaryResponse.secure_url,
       });
 
-      res.status(200).json({ success: true, message: "Category updated successfully", data: updatedCategory });
+      res.status(200).json({ success: true, message: "Category updated successfully", category: updatedCategory });
     } else {
       // If no new image is provided, update the category without modifying the image
       const updatedCategory = await updateCategoryController(categoryId, req.body);
-      res.status(200).json({ success: true, message: "Category updated successfully", data: updatedCategory });
+      res.status(200).json({ success: true, message: "Category updated successfully", category: updatedCategory });
     }
   } catch (error) {
     next(error);
