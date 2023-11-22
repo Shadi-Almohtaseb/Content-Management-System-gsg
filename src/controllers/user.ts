@@ -17,7 +17,7 @@ const signupController = async (payload: User) => {
       return verificationResult
     }
   } else {
-    const newUser = User.create(payload);
+    const newUser = User.create({ ...payload, createdAt: new Date() });
     await newUser.save();
     const verificationResult = await sendVerificationCode(newUser, "Verify your email");
     return verificationResult

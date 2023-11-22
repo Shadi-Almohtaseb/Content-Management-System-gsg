@@ -17,7 +17,7 @@ const signupShopController = async (payload: Shop) => {
       return verificationResult
     }
   } else {
-    const newShop = Shop.create(payload);
+    const newShop = Shop.create({ ...payload, createdAt: new Date() });
     await newShop.save();
     const verificationResult = await sendVerificationCodeShop(newShop, "Verify your email");
     return verificationResult

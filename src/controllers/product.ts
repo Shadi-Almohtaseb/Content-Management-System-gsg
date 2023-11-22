@@ -14,6 +14,7 @@ const createProductController = async (payload: Product & { variants: ProductVar
     const newProduct = Product.create({
       ...payload,
       shop: shop,
+      createdAt: new Date(),
     });
 
     newProduct.categories = await Category.findBy({
