@@ -32,7 +32,7 @@ export class Order extends BaseEntity {
     products: Partial<Product>[]
 
     @CreateDateColumn({
-        type: 'timestamp',
+        type: 'timestamp with time zone',
         default: () => "CURRENT_TIMESTAMP(6)"
     })
     createdAt: Date;

@@ -26,7 +26,7 @@ export class Address extends BaseEntity {
     shop: Partial<Shop>
 
     @CreateDateColumn({
-        type: 'timestamp',
+        type: 'timestamp with time zone',
         default: () => "CURRENT_TIMESTAMP(6)"
     })
     createdAt: Date;

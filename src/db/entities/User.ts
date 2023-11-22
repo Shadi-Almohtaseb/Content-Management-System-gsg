@@ -48,7 +48,7 @@ export class User extends BaseEntity {
     verificationCode: Partial<VerificationCode>
 
     @CreateDateColumn({
-        type: 'timestamp',
+        type: 'timestamp with time zone',
         default: () => "CURRENT_TIMESTAMP(6)"
     })
     createdAt: Date;
