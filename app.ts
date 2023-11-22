@@ -45,11 +45,11 @@ app.use('/tags', tagsRouter);
 // catch 404 and forward to error handler
 app.use(notFoundHandler)
 
-// Default error handler
-app.use(DefaultErrorHandler)
-
 // Custom Error handler middleware
 app.use(customErrorHandler)
+
+// Default error handler
+app.use(DefaultErrorHandler)
 
 // Connect to DB
 dataSource.initialize().then(() => {
