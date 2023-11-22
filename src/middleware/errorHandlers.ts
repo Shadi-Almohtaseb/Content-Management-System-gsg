@@ -14,7 +14,7 @@ export function customErrorHandler(err: any, req: Request, res: Response, next: 
   } else {
     // Handle other errors here
     console.error("Error :( => ", err);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res.status(500).json({ success: false, error: "Something went wrong" });
   }
 }
 
@@ -24,5 +24,6 @@ export function DefaultErrorHandler(err: any, req: Request, res: Response, next:
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
-  res.status(err.status || 500).send({ error: err.message });
+  console.log("Catch Error :(( => ", err);
+  res.status(err.status || 500).send({ error: "Internal server error" });
 }
