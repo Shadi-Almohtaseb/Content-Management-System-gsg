@@ -47,14 +47,15 @@ export class Shop extends BaseEntity {
     orders: Partial<Order>[]
 
     @OneToOne(() => Address, address => address.shop)
+    @JoinColumn({ name: 'address_id' })
     address: Partial<Address>
 
     @OneToOne(() => VerificationCode, verificationCode => verificationCode.shop, { onUpdate: 'CASCADE' })
-    @JoinColumn()
+    @JoinColumn({ name: 'verification_code_id' })
     verificationCode: Partial<VerificationCode>
 
     @CreateDateColumn({
-        type: 'timestamp with time zone',
+        type: 'timestamp',
         default: () => "CURRENT_TIMESTAMP(6)"
     })
     createdAt: Date;

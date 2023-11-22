@@ -42,7 +42,7 @@ export class Product extends BaseEntity {
     // reviews: reviews
 
     @CreateDateColumn({
-        type: 'timestamp with time zone',
+        type: 'timestamp',
         default: () => "CURRENT_TIMESTAMP(6)"
     })
     createdAt: Date;

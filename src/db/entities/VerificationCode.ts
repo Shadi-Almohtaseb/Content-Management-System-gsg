@@ -17,13 +17,13 @@ export class VerificationCode extends BaseEntity {
     shop: Partial<Shop>;
 
     @CreateDateColumn({
-        type: 'timestamp with time zone',
+        type: 'timestamp',
         default: () => "CURRENT_TIMESTAMP(6)"
     })
     createdAt: Date;
 
     @CreateDateColumn({
-        type: 'timestamp with time zone',
+        type: 'timestamp',
         default: () => "CURRENT_TIMESTAMP(6)"
     })
     expiresAt: Date;
