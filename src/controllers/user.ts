@@ -72,6 +72,7 @@ const activateAccountController = async (email: string, verificationCode: string
   return {
     success: true,
     message: "Account activated successfully",
+    user,
     token,
   };
 };
@@ -105,6 +106,7 @@ const loginController = async (payload: User) => {
   return {
     success: true,
     message: "Login successful",
+    user,
     token,
   };
 }

@@ -5,6 +5,11 @@ import { generateShopToken } from "../utils/generateToken.js";
 import { sendVerificationCodeShop } from "../utils/sendVerificationCode.js";
 import bcrypt from 'bcrypt';
 
+async function phoneNumberExists(phoneNumber: string) {
+  const existingShop = await Shop.findOne({ where: { phoneNumber } });
+  return !!existingShop; // Returns true if the phone number already exists, false otherwise
+}
+
 const signupShopController = async (payload: Shop) => {
   const { email } = payload;
   const shop = await Shop.findOne({ where: { email }, relations: ["verificationCode"] });
@@ -17,10 +22,14 @@ const signupShopController = async (payload: Shop) => {
       return verificationResult
     }
   } else {
-    const newShop = Shop.create({ ...payload, createdAt: new Date() });
-    await newShop.save();
-    const verificationResult = await sendVerificationCodeShop(newShop, "Verify your email");
-    return verificationResult
+    if (await phoneNumberExists(payload.phoneNumber)) {
+      throw new AppError("Shop with this Phone number already exists", 409, true);
+    } else {
+      const newShop = Shop.create({ ...payload, createdAt: new Date() });
+      await newShop.save();
+      const verificationResult = await sendVerificationCodeShop(newShop, "Verify your email");
+      return verificationResult
+    }
   }
 }
 
@@ -72,6 +81,7 @@ const activateAccountController = async (email: string, verificationCode: string
   return {
     success: true,
     message: "Account activated successfully",
+    shop,
     token,
   };
 };
@@ -101,6 +111,7 @@ const loginShopController = async (payload: Shop) => {
   return {
     success: true,
     message: "Login successful",
+    shop,
     token,
   };
 }
