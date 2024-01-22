@@ -40,6 +40,9 @@ export class Shop extends BaseEntity {
     @Column({ nullable: false, default: false })
     isDeleted: boolean;
 
+    @Column({ nullable: false, enum: ['User', 'Shop'], default: 'Shop' })
+    role: "User" | "Shop";
+
     @OneToMany(() => Product, products => products.shop)
     products: Partial<Product>[]
 

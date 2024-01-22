@@ -36,6 +36,9 @@ export class User extends BaseEntity {
     @Column({ nullable: false, default: false })
     isDeleted: boolean;
 
+    @Column({ nullable: false, enum: ['User', 'Shop'], default: 'User' })
+    role: "User" | "Shop";
+
     @OneToMany(() => Order, order => order.user)
     orders: Partial<Order>[]
 

@@ -70,11 +70,18 @@ router.get("/", async (req: express.Request, res: express.Response, next: expres
       category: req.query.category?.toString() || '',
     };
     const products = await getAllProductController(payload);
-    res.status(200).json({
-      page: payload.page,
-      pageSize: payload.pageSize,
+
+    const lastPage = Math.ceil(products.length / Number(payload.pageSize));
+    const pagination = {
+      page: Number(payload.page),
+      pageSize: Number(payload.pageSize),
       q: payload.q,
+      lastPage,
       total: products.length,
+    }
+    res.status(200).json({
+      status: "success",
+      pagination,
       products
     });
   } catch (error) {

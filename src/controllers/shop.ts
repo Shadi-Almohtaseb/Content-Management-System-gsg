@@ -82,6 +82,7 @@ const activateAccountController = async (email: string, verificationCode: string
     success: true,
     message: "Account activated successfully",
     shop,
+    role: shop.role,
     token,
   };
 };
@@ -112,6 +113,7 @@ const loginShopController = async (payload: Shop) => {
     success: true,
     message: "Login successful",
     shop,
+    role: shop.role,
     token,
   };
 }

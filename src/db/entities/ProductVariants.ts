@@ -13,8 +13,8 @@ export class ProductVariant extends BaseEntity {
     @Column({ type: 'simple-json', nullable: true })
     dimensions: { length: number; width: number; height: number };
 
-    @Column({ type: "simple-array" })
-    colors: string[];
+    @Column({ type: 'text' })
+    color: string;
 
     @Column({ nullable: false, type: "float" })
     originalPrice: number

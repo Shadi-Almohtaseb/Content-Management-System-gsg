@@ -73,6 +73,7 @@ const activateAccountController = async (email: string, verificationCode: string
     success: true,
     message: "Account activated successfully",
     user,
+    type: user.role,
     token,
   };
 };
@@ -107,6 +108,7 @@ const loginController = async (payload: User) => {
     success: true,
     message: "Login successful",
     user,
+    type: user.role,
     token,
   };
 }
@@ -175,7 +177,7 @@ const getUserController = async (userId: string) => {
     throw new AppError("User dose not exist", 404, true);
   }
 
-  if (user.isVerified) {
+  if (!user.isVerified) {
     throw new AppError("User not verified", 404, true);
   }
 
