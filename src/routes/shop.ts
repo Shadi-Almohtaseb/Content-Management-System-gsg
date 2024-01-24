@@ -25,7 +25,7 @@ router.post("/activation", async (req: express.Request, res: express.Response, n
 
     const data = await activateAccountController(email, otp);
     return res.status(201).cookie(
-      "shopToken", data.token,
+      "_auth", data.token,
       { httpOnly: true, secure: true, sameSite: "none" }).json(data
       );
 
@@ -40,7 +40,7 @@ router.post("/login", async (req: express.Request, res: express.Response, next: 
     if (req.body.email && req.body.password) {
       const data = await loginShopController(req.body);
       return res.status(200).cookie(
-        "shopToken", data.token,
+        "_auth", data.token,
         { httpOnly: true, secure: true, sameSite: "none" }).json(data)
     } else {
       return res.status(400).json("All fields are required");
@@ -53,7 +53,7 @@ router.post("/login", async (req: express.Request, res: express.Response, next: 
 /*POST Logout Shop */
 router.post("/logout", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    return res.status(200).clearCookie("shopToken").json({ success: true, message: "Shop logged out successfully" })
+    return res.status(200).clearCookie("_auth").json({ success: true, message: "Shop logged out successfully" })
   } catch (error) {
     next(error)
   }
