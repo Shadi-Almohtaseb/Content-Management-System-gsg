@@ -5,7 +5,7 @@ import { ExpressNS } from "../../@types/index.js";
 import { Shop } from "../db/entities/Shop.js";
 
 const authenticateUser: RequestHandler<any, any, Record<string, any>, any, Record<string, any>> = async (req, res, next) => {
-  const token = req.cookies["userToken"] || "";
+  const token = req.cookies["_auth"] || "";
   let validToken;
   try {
     validToken = jwt.verify(token, process.env.SECRET_KEY || "");
@@ -31,7 +31,7 @@ const authenticateUser: RequestHandler<any, any, Record<string, any>, any, Recor
 };
 
 const authenticateShop: RequestHandler<any, any, Record<string, any>, any, Record<string, any>> = async (req, res, next) => {
-  const token = req.cookies["shopToken"] || "";
+  const token = req.cookies["_auth"] || "";
   let validToken;
   try {
     validToken = jwt.verify(token, process.env.SECRET_KEY || "");
