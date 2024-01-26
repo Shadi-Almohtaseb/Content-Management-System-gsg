@@ -16,7 +16,10 @@ router.post("/", authenticateShop, async (req: ExpressNS.RequestWithShop, res: e
       throw new AppError("you are unauthorized, login to continue", 404, true);
     }
 
-    if (!req.body.name || !req.body.long_description || !JSON.parse(req.body.variants).map((item: ProductVariant) => item.originalPrice) || !req.body.categories || !req.body.tags) {
+    console.log("req.body", req.body);
+    console.log("req.files", req.files);
+
+    if (!req.body.name || !req.body.long_description || (req.body?.variants && !JSON.parse(req.body?.variants).map((item: ProductVariant) => item.originalPrice)) || !req.body.categories || !req.body.tags) {
       throw new AppError("Some fields are missing", 400, true);
     }
 
@@ -33,9 +36,11 @@ router.post("/", authenticateShop, async (req: ExpressNS.RequestWithShop, res: e
       cloudinaryResponses.push(cloudinaryResponse);
     }
 
+    console.log("cloudinaryResponses", cloudinaryResponses);
+
     const product = await createProductController({
       ...req.body,
-      variants: JSON.parse(req.body.variants),
+      variants: JSON.parse(req.body?.variants || "[]"),
       images: cloudinaryResponses.map(response => response.secure_url)
     }, shop);
 
