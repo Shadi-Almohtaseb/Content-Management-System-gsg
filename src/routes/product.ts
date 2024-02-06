@@ -6,6 +6,7 @@ import { AppError } from '../utils/errorHandler.js';
 import { UploadedFile } from 'express-fileupload';
 import { uploadImageToCloudinary } from '../utils/cloudinaryMethods.js';
 import { ProductVariant } from '../db/entities/ProductVariants.js';
+import { Product } from '../db/entities/Product.js';
 const router = express.Router();
 
 /* POST create product. */
@@ -75,6 +76,15 @@ router.get("/", async (req: express.Request, res: express.Response, next: expres
       category: req.query.category?.toString() || '',
     };
     const products = await getAllProductController(payload);
+    const rangePrise = products.map((product: Product) => {
+      const prices = product.variants.map((variant: ProductVariant | any) => variant.originalPrice);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      return {
+        minPrice,
+        maxPrice
+      }
+    });
 
     const lastPage = Math.ceil(products.length / Number(payload.pageSize));
     const pagination = {
@@ -84,6 +94,10 @@ router.get("/", async (req: express.Request, res: express.Response, next: expres
       lastPage,
       total: products.length,
     }
+
+    products.forEach((product: any, index: number) => {
+      product.rangePrice = rangePrise[index];
+    });
     res.status(200).json({
       status: "success",
       pagination,
