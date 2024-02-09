@@ -71,6 +71,56 @@ const getAllProductController = async (payload: pagination) => {
   return products;
 }
 
+const getProductsByShopIdController = async (payload: pagination) => {
+  const page = parseInt(payload.page);
+  const pageSize = parseInt(payload.pageSize);
+  const q = payload.q
+  const shopId = payload.shopId
+  const products = Product.find({
+    relations: ['variants', 'shop', "categories"],
+    select: { shop: { shop_id: true, avatar: true, shopName: true, email: true } },
+    skip: pageSize * (page - 1),
+    take: pageSize,
+    order: {
+      createdAt: "DESC"
+    },
+    where: shopId ? { shop: { shop_id: shopId } as any } : undefined,
+  });
+
+  return products;
+}
+
+const getProductsByListIdsController = async (ids: number[]) => {
+  // Check if ids is an array and it contains valid numbers
+  if (!Array.isArray(ids) || ids.some(id => typeof id !== 'number' || isNaN(id))) {
+    throw new Error('Invalid input: ids must be an array of numbers');
+  }
+
+  // Await the Product.find() method to get the actual products
+  const products = await Product.find({
+    relations: ['variants', 'categories'],
+    select: { variants: { originalPrice: true, discountPrice: true } },
+    where: { id: In(ids) }
+  });
+
+  return products;
+}
+
+const getProductsByVariantIdsController = async (ids: number[]) => {
+  // Check if ids is an array and it contains valid numbers
+  if (!Array.isArray(ids) || ids.some(id => typeof id !== 'number' || isNaN(id))) {
+    throw new Error('Invalid input: ids must be an array of numbers');
+  }
+
+  // Await the Product.find() method to get the actual products
+  const products = await Product.find({
+    relations: ['variants'],
+    where: { variants: { variant_id: In(ids) } }
+  });
+
+  return products;
+}
+
 const deleteProductController = async (id: number, shop: Shop) => {
   const product = await Product.findOne({ where: { id: id }, relations: ['shop', 'variants'] });
   if (!product) {
@@ -99,5 +149,8 @@ export {
   createProductController,
   getProductByIdController,
   getAllProductController,
-  deleteProductController
+  deleteProductController,
+  getProductsByShopIdController,
+  getProductsByListIdsController,
+  getProductsByVariantIdsController
 }

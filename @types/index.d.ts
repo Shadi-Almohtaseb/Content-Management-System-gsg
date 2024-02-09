@@ -5,6 +5,7 @@ interface pagination {
     pageSize: string;
     q: string
     category?: string;
+    shopId?: number;
 }
 
 namespace ExpressNS {
