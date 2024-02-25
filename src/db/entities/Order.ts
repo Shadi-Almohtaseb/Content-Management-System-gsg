@@ -3,6 +3,7 @@ import { User } from "./User.js";
 import { Address } from "./Address.js";
 import { Shop } from "./Shop.js";
 import { Product } from "./Product.js";
+import { ProductVariant } from "./ProductVariants.js";
 
 @Entity('orders')
 export class Order extends BaseEntity {
@@ -22,14 +23,17 @@ export class Order extends BaseEntity {
     @OneToOne(() => Address, address => address.user)
     shippingAddress: Address
 
-    @ManyToOne(() => Shop, shop => shop.orders)
-    shop: Partial<Shop>
+    // @ManyToOne(() => Shop, shop => shop.orders)
+    // shop: Partial<Shop>
 
     @ManyToOne(() => User, user => user.orders)
     user: Partial<User>
 
-    @OneToMany(() => Product, product => product.id)
-    products: Partial<Product>[]
+    // @OneToMany(() => Product, product => product.id)
+    // products: Partial<Product>[]
+
+    @OneToMany(() => ProductVariant, productVariant => productVariant.variant_id)
+    variants: Partial<ProductVariant>[]
 
     @CreateDateColumn({
         type: 'timestamp',

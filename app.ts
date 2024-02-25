@@ -7,6 +7,7 @@ import fileUpload from 'express-fileupload'
 import indexRouter from './src/routes/index.js'
 import usersRouter from './src/routes/user.js'
 import shopsRouter from './src/routes/shop.js'
+import orderRouter from './src/routes/order.js'
 import productsRouter from './src/routes/product.js'
 import tagsRouter from './src/routes/tag.js'
 import categoriesRouter from './src/routes/category.js'
@@ -41,6 +42,7 @@ app.use('/shops', shopsRouter);
 app.use('/products', productsRouter);
 app.use('/categories', categoriesRouter);
 app.use('/tags', tagsRouter);
+app.use('/orders', orderRouter);
 
 // catch 404 and forward to error handler
 app.use(notFoundHandler)

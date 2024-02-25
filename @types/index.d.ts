@@ -1,4 +1,6 @@
 import express from 'express';
+import { User } from '../src/db/entities/User.ts';
+import { Shop } from '../src/db/entities/Shop.ts';
 
 interface pagination {
     page: string;
