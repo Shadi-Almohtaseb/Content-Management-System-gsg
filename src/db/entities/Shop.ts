@@ -46,8 +46,8 @@ export class Shop extends BaseEntity {
     @OneToMany(() => Product, products => products.shop)
     products: Partial<Product>[]
 
-    // @OneToMany(() => Order, order => order.shop)
-    // orders: Partial<Order>[]
+    @OneToMany(() => Order, order => order.shop)
+    orders: Partial<Order>[]
 
     @OneToOne(() => Address, address => address.shop)
     @JoinColumn({ name: 'address_id' })

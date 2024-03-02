@@ -5,52 +5,91 @@ import { Shop } from "../db/entities/Shop.js";
 import { User } from "../db/entities/User.js";
 import { ProductVariant } from "../db/entities/ProductVariants.js";
 
-const createOrderController = async (orderData: Order, user: User) => {
-  // const variants = await ProductVariant.find({
-  //   where: {
-  //     variant_id: In(orderData.variants)
-  //   }
-  // });
+interface orderDetailsInterface {
+  fullName: string;
+  phoneNumber: string;
+  quantity: number;
+  shippingAddress: {
+    street: string;
+    city: string;
+    country: string;
+  };
+  orderDetails: [
+    {
+      variant_id: number;
+      quantity: number;
+    }
+  ]
+}
 
-  // Get products from variants
-  // const products = await Product.find({
-  //   where: {
-  //     id: In(productsIds)
-  //   }
-  // });
+const createOrderController = async (orderData: orderDetailsInterface, user: User) => {
+  let products: Product[] = [];
+  for (let i = 0; i < orderData.orderDetails.length; i++) {
+    const product = await Product.findOne({
+      where: {
+        id: orderData.orderDetails[i].variant_id
+      },
+      relations: ['shop']
+    });
+    if (product) {
+      products.push(product);
+    }
+  }
 
-  // Calculate total price based on product variants
-  // const totalPrices = variants.reduce((acc, variant) => {
-  //   return acc + variant.discountPrice
-  // }, 0);
+  console.log("products: ", products);
+  // unique shops
+  const shopsIds = products.map(product => product.shop.shop_id);
+  const uniqueShopsIds = [...new Set(shopsIds)];
+  console.log("uniqueShopsIds: ", uniqueShopsIds);
 
-  // const shopsIds = products.map(product => product.shop.shop_id);
-  // const shops = await Shop.find({
-  //   where: {
-  //     shop_id: In(shopsIds)
-  //   }
-  // })
-  // send email to each shop
-  // shops.forEach(shop => {
-  //   console.log(`Sending email to shop ${shop.email}`);
-  // })
-  // // send email to user
-  // console.log(`Sending email to user ${user.email}`);
-  // console.log(
-  //   {
-  //     ...orderData,
-  //     totalPrice: totalPrices,
-  //     createdAt: new Date(),
-  //     user: user,
-  //   }
-  // );
+  const variants = await ProductVariant.find({
+    where: {
+      variant_id: In(orderData.orderDetails.map((orderDetail) => orderDetail.variant_id))
+    },
+    relations: ['product']
+  });
 
-  const order = await Order.create({
-    ...orderData,
-    variants: orderData.variants,
-    createdAt: new Date(),
-    user: user,
-  }).save();
+  // separate variants for each shop
+  const shopVariants = uniqueShopsIds.map((shopId) => {
+    return variants.filter((variant) => variant.product.shop && variant.product.shop.shop_id === shopId);
+  });
+
+  const totalPrices = shopVariants.map((variants, index) => {
+    return variants.reduce((acc, variant) => {
+      const orderDetail = orderData.orderDetails.find((orderDetail) => orderDetail.variant_id === variant.variant_id);
+      if (orderDetail) {
+        return acc + orderDetail.quantity * variant.discountPrice;
+      }
+      return acc;
+    }, 0);
+  })
+
+
+  const shops = await Shop.find({
+    where: {
+      shop_id: In(uniqueShopsIds)
+    }
+  });
+
+  let order;
+  for (let i = 0; i < shops.length; i++) {
+    const shop = shops[i];
+    order = await Order.create({
+      ...orderData,
+      variants: shopVariants[i],
+      quantity: shopVariants[i].reduce((acc, variant) => {
+        const orderDetail = orderData.orderDetails.find((orderDetail) => orderDetail.variant_id === variant.variant_id);
+        if (orderDetail) {
+          return acc + orderDetail.quantity;
+        }
+        return acc;
+      }, 0),
+      createdAt: new Date(),
+      totalPrice: totalPrices[i],
+      user: user,
+      shop: shop
+    }).save();
+  }
   return order;
 }
 

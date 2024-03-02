@@ -12,7 +12,7 @@ router.post("/", authenticateUser, async (req: ExpressNS.RequestWithUser, res: e
     if (!user) {
       throw new AppError("you are unauthorized, login to continue", 404, true);
     }
-    if (!req.body.variants || !req.body.variants.length) {
+    if (!req.body.orderDetails || !req.body.orderDetails.length) {
       throw new AppError("No items in the cart", 400, true);
     }
     if (!req.body.shippingAddress || !req.body.shippingAddress.street || !req.body.shippingAddress.city || !req.body.shippingAddress.country) {
