@@ -87,7 +87,7 @@ router.put("/reset-password", async (req: express.Request, res: express.Response
 router.put("/password", authenticateShop, async (req: ExpressNS.RequestWithShop, res: express.Response, next: express.NextFunction) => {
   try {
     const shop = req.shop;
-    if (!shop) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    if (!shop) return res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
 
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword) res.status(400).json({ success: false, message: "All fields are required" })
@@ -113,7 +113,7 @@ router.get("/:id", async (req: express.Request, res: express.Response, next: exp
 router.put("/", authenticateShop, async (req: ExpressNS.RequestWithShop, res: express.Response, next: express.NextFunction) => {
   try {
     const shop = req.shop;
-    if (!shop) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    if (!shop) return res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
     const data = await updateShopController(shop, req.body);
     return res.status(200).json(data)
   } catch (error) {
@@ -125,7 +125,7 @@ router.put("/", authenticateShop, async (req: ExpressNS.RequestWithShop, res: ex
 router.delete("/", authenticateShop, async (req: ExpressNS.RequestWithShop, res: express.Response, next: express.NextFunction) => {
   try {
     const shop = req.shop;
-    if (!shop) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    if (!shop) return res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
     shop.isDeleted = true;
     await shop.save();
     return res.status(200).json({ success: true, message: "Shop deleted successfully" })

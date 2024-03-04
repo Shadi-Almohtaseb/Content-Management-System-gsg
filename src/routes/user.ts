@@ -87,7 +87,7 @@ router.put("/reset-password", async (req: express.Request, res: express.Response
 router.put("/password", authenticateUser, async (req: ExpressNS.RequestWithUser, res: express.Response, next: express.NextFunction) => {
   try {
     const user = req.user;
-    if (!user) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    if (!user) return res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
 
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword) res.status(400).json({ success: false, message: "All fields are required" })
@@ -113,7 +113,7 @@ router.get("/:id", async (req: express.Request, res: express.Response, next: exp
 router.put("/", authenticateUser, async (req: ExpressNS.RequestWithUser, res: express.Response, next: express.NextFunction) => {
   try {
     const user = req.user;
-    if (!user) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    if (!user) return res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
     const data = await updateUserProfileController(user, req.body);
     return res.status(200).json(data)
   } catch (error) {
@@ -125,7 +125,7 @@ router.put("/", authenticateUser, async (req: ExpressNS.RequestWithUser, res: ex
 router.delete("/", authenticateUser, async (req: ExpressNS.RequestWithUser, res: express.Response, next: express.NextFunction) => {
   try {
     const user = req.user;
-    if (!user) res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
+    if (!user) return res.status(401).json({ success: false, message: "You are unauthorized, login to continue" })
     user.isDeleted = true;
     await user.save();
     return res.status(200).clearCookie("userToken").json({ success: true, message: "User deleted successfully" })

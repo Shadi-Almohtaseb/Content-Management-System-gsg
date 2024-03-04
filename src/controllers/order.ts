@@ -1,96 +1,127 @@
-import { In } from "typeorm";
+import { In, EntityManager } from "typeorm";
 import { Order } from "../db/entities/Order.js";
-import { Product } from "../db/entities/Product.js";
 import { Shop } from "../db/entities/Shop.js";
 import { User } from "../db/entities/User.js";
 import { ProductVariant } from "../db/entities/ProductVariants.js";
+import { Address } from "../db/entities/Address.js";
+import dataSource from "../db/dataSource.js";
+import { AppError } from "../utils/errorHandler.js";
 
-interface orderDetailsInterface {
+interface OrderDetail {
+  variant_id: number;
+  quantity: number;
+}
+
+const createOrderController = async (orderData: {
   fullName: string;
   phoneNumber: string;
-  quantity: number;
   shippingAddress: {
     street: string;
     city: string;
     country: string;
+    region: string;
   };
-  orderDetails: [
-    {
-      variant_id: number;
-      quantity: number;
-    }
-  ]
-}
-
-const createOrderController = async (orderData: orderDetailsInterface, user: User) => {
-  let products: Product[] = [];
-  for (let i = 0; i < orderData.orderDetails.length; i++) {
-    const product = await Product.findOne({
-      where: {
-        id: orderData.orderDetails[i].variant_id
-      },
-      relations: ['shop']
-    });
-    if (product) {
-      products.push(product);
-    }
-  }
-
-  console.log("products: ", products);
-  // unique shops
-  const shopsIds = products.map(product => product.shop.shop_id);
-  const uniqueShopsIds = [...new Set(shopsIds)];
-  console.log("uniqueShopsIds: ", uniqueShopsIds);
-
-  const variants = await ProductVariant.find({
-    where: {
-      variant_id: In(orderData.orderDetails.map((orderDetail) => orderDetail.variant_id))
-    },
-    relations: ['product']
-  });
-
-  // separate variants for each shop
-  const shopVariants = uniqueShopsIds.map((shopId) => {
-    return variants.filter((variant) => variant.product.shop && variant.product.shop.shop_id === shopId);
-  });
-
-  const totalPrices = shopVariants.map((variants, index) => {
-    return variants.reduce((acc, variant) => {
-      const orderDetail = orderData.orderDetails.find((orderDetail) => orderDetail.variant_id === variant.variant_id);
-      if (orderDetail) {
-        return acc + orderDetail.quantity * variant.discountPrice;
+  orderDetails: OrderDetail[];
+}, user: User): Promise<Order[]> => {
+  try {
+    return dataSource.manager.transaction(async (transactionManager: EntityManager) => {
+      const userIn = await User.findOne({ where: { id: user.id }, relations: ['address'] });
+      if (!userIn) {
+        throw new AppError("User not found", 404, true);
       }
-      return acc;
-    }, 0);
-  })
+      const productIds = orderData.orderDetails.map((detail) => detail.variant_id);
+      const variants = await ProductVariant.find({
+        where: {
+          variant_id: In(productIds)
+        },
+        relations: ['product', 'product.shop']
+      });
 
-
-  const shops = await Shop.find({
-    where: {
-      shop_id: In(uniqueShopsIds)
-    }
-  });
-
-  let order;
-  for (let i = 0; i < shops.length; i++) {
-    const shop = shops[i];
-    order = await Order.create({
-      ...orderData,
-      variants: shopVariants[i],
-      quantity: shopVariants[i].reduce((acc, variant) => {
-        const orderDetail = orderData.orderDetails.find((orderDetail) => orderDetail.variant_id === variant.variant_id);
-        if (orderDetail) {
-          return acc + orderDetail.quantity;
+      // Create a map of shop IDs to variants
+      const shopVariantsMap = new Map<string, ProductVariant[]>();
+      variants.forEach((variant) => {
+        const shopId = variant.product.shop?.shop_id;
+        if (shopId) {
+          const variantsForShop = shopVariantsMap.get(shopId) || [];
+          variantsForShop.push(variant);
+          shopVariantsMap.set(shopId, variantsForShop);
         }
-        return acc;
-      }, 0),
-      createdAt: new Date(),
-      totalPrice: totalPrices[i],
-      user: user,
-      shop: shop
-    }).save();
+      });
+
+      const userAddress = Address.create({
+        country: orderData.shippingAddress.country,
+        city: orderData.shippingAddress.city,
+        street: orderData.shippingAddress.street,
+        region: orderData.shippingAddress.region,
+        createdAt: new Date(),
+        user: userIn,
+      });
+
+      await transactionManager.save(userAddress);
+
+      // Create orders for each shop
+      const orders: Order[] = [];
+      for (const [shopId, variantsForShop] of shopVariantsMap.entries()) {
+        console.log(`Processing shop with ID: ${shopId}`);
+        console.log(`Variants for shop:`, variantsForShop);
+
+        const shop = await Shop.findOne({ where: { shop_id: shopId }, select: ['shop_id'] });
+        if (shop) {
+          const totalPrice = variantsForShop.reduce((acc, variant) => {
+            const orderDetail = orderData.orderDetails.find((detail) => detail.variant_id === variant.variant_id);
+            if (orderDetail) {
+              return acc + orderDetail.quantity * variant.discountPrice;
+            }
+            return acc;
+          }, 0);
+
+          console.log(`Total price for shop with ID ${shopId}:`, totalPrice);
+
+
+          const quantity = variantsForShop.reduce((acc, variant) => {
+            const orderDetail = orderData.orderDetails.find((detail) => detail.variant_id === variant.variant_id);
+            if (orderDetail) {
+              return acc + orderDetail.quantity;
+            }
+            return acc;
+          }, 0);
+
+          console.log(`Total quantity for shop with ID ${shopId}:`, quantity);
+
+
+          if (variantsForShop.length === 0) {
+            console.log(`Variants for shop with ID ${shopId} is empty. Skipping order creation.`);
+            continue; // Skip creating order if variants are empty
+          }
+
+          console.log(`Creating order for shop with ID ${shopId}`);
+
+          const order = Order.create({
+            user: userIn,
+            shop: shop,
+            variants: variantsForShop,
+            quantity: quantity,
+            totalPrice: totalPrice,
+            fullName: orderData.fullName,
+            phoneNumber: orderData.phoneNumber,
+            createdAt: new Date(),
+            status: 'pending',
+            shippingAddress: userIn?.address
+          });
+
+          await transactionManager.save(order);
+          orders.push(order);
+        } else {
+          console.log(`Shop with ID ${shopId} not found. Skipping order creation.`);
+        }
+      }
+
+      return orders;
+    });
+  } catch (error) {
+    console.error("Error creating order:", error);
+    throw error;
   }
-  return order;
 }
 
-export { createOrderController }
+export { createOrderController };

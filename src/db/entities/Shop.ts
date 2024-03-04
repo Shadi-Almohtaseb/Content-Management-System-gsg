@@ -49,10 +49,6 @@ export class Shop extends BaseEntity {
     @OneToMany(() => Order, order => order.shop)
     orders: Partial<Order>[]
 
-    @OneToOne(() => Address, address => address.shop)
-    @JoinColumn({ name: 'address_id' })
-    address: Partial<Address>
-
     @OneToOne(() => VerificationCode, verificationCode => verificationCode.shop, { onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'verification_code_id' })
     verificationCode: Partial<VerificationCode>

@@ -1,6 +1,5 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, OneToOne } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn } from "typeorm";
 import { User } from "./User.js";
-import { Shop } from "./Shop.js";
 
 @Entity('addresses')
 export class Address extends BaseEntity {
@@ -16,14 +15,12 @@ export class Address extends BaseEntity {
     @Column({ length: 255, nullable: false })
     street: string;
 
-    @Column({ length: 255, nullable: true })
+    @Column({ length: 255, nullable: false })
     region: string;
 
     @OneToOne(() => User, user => user.address)
+    @JoinColumn()
     user: Partial<User>
-
-    @OneToOne(() => Shop, shop => shop.address)
-    shop: Partial<Shop>
 
     @CreateDateColumn({
         type: 'timestamp',

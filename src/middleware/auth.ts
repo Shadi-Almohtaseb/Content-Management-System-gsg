@@ -19,11 +19,11 @@ const authenticateUser: RequestHandler<any, any, Record<string, any>, any, Recor
     if (decoded?.email) {
       const user = await User.findOneBy({ email: decoded.email });
       if (user?.isDeleted || !user?.isVerified) {
-        (req as ExpressNS.RequestWithUser).user = null;
+        (req as ExpressNS.RequestWithUser).user = undefined;
       }
-      (req as ExpressNS.RequestWithUser).user = user || null;
+      (req as ExpressNS.RequestWithUser).user = user || undefined;
     } else {
-      (req as ExpressNS.RequestWithUser).user = null;
+      (req as ExpressNS.RequestWithUser).user = undefined;
     }
     next();
   } else {
@@ -46,11 +46,11 @@ const authenticateShop: RequestHandler<any, any, Record<string, any>, any, Recor
     if (decoded?.email) {
       const shop = await Shop.findOneBy({ email: decoded.email });
       if (shop?.isDeleted || !shop?.isVerified) {
-        (req as ExpressNS.RequestWithShop).shop = null;
+        (req as ExpressNS.RequestWithShop).shop = undefined;
       }
-      (req as ExpressNS.RequestWithShop).shop = shop || null;
+      (req as ExpressNS.RequestWithShop).shop = shop || undefined;
     } else {
-      (req as ExpressNS.RequestWithShop).shop = null;
+      (req as ExpressNS.RequestWithShop).shop = undefined;
     }
     next();
   } else {

@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, OneToOne } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, OneToOne, JoinColumn } from "typeorm";
 import { User } from "./User.js";
 import { Address } from "./Address.js";
 import { Shop } from "./Shop.js";
@@ -8,6 +8,12 @@ import { ProductVariant } from "./ProductVariants.js";
 export class Order extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
     id: number;
+
+    @Column({ length: 255, nullable: false })
+    fullName: string;
+
+    @Column({ length: 255, nullable: false })
+    phoneNumber: string;
 
     @Column({
         type: "enum",
@@ -23,6 +29,7 @@ export class Order extends BaseEntity {
     totalPrice: number
 
     @OneToOne(() => Address, address => address.user)
+    @JoinColumn()
     shippingAddress: Address
 
     @ManyToOne(() => Shop, shop => shop.orders)
