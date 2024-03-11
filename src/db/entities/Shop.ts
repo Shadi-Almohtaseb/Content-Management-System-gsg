@@ -1,4 +1,4 @@
-import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, PrimaryGeneratedColumn, OneToMany, OneToOne } from "typeorm";
+import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, PrimaryGeneratedColumn, OneToMany, OneToOne, ManyToMany, JoinTable } from "typeorm";
 import bcrypt from 'bcrypt';
 import { Product } from "./Product.js";
 import { Address } from "./Address.js";

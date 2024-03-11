@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, OneToOne, JoinColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, OneToOne, JoinColumn, ManyToMany, JoinTable } from "typeorm";
 import { User } from "./User.js";
 import { Address } from "./Address.js";
 import { Shop } from "./Shop.js";
@@ -28,8 +28,7 @@ export class Order extends BaseEntity {
     @Column({ nullable: false, type: 'float' })
     totalPrice: number
 
-    @OneToOne(() => Address, address => address.user)
-    @JoinColumn()
+    @ManyToOne(() => Address, address => address.orders, { cascade: true })
     shippingAddress: Address
 
     @ManyToOne(() => Shop, shop => shop.orders)
@@ -38,7 +37,8 @@ export class Order extends BaseEntity {
     @ManyToOne(() => User, user => user.orders)
     user: Partial<User>
 
-    @OneToMany(() => ProductVariant, productVariant => productVariant.variant_id)
+    @ManyToMany(() => ProductVariant, productVariant => productVariant.orders)
+    @JoinTable()
     variants: Partial<ProductVariant>[]
 
     @CreateDateColumn({

@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BaseEntity } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BaseEntity, ManyToMany } from 'typeorm';
 import { Product } from './Product.js';
+import { Order } from './Order.js';
 
 @Entity("product_variants")
 export class ProductVariant extends BaseEntity {
@@ -9,6 +10,9 @@ export class ProductVariant extends BaseEntity {
     @ManyToOne(() => Product, product => product.variants)
     @JoinColumn({ name: 'product_id' })
     product: Partial<Product>;
+
+    @ManyToMany(() => Order, order => order.variants)
+    orders: Partial<Order>[];
 
     @Column({ type: 'simple-json', nullable: true })
     dimensions: { length: number; width: number; height: number };
