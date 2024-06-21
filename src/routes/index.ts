@@ -6,7 +6,6 @@ router.get("/", async (req: express.Request, res: express.Response, next: expres
   try {
     res.send("index");
   } catch (error) {
-    console.log("errorrrrrr", error);
     next(error);
   }
 });

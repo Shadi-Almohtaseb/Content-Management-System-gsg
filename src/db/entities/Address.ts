@@ -19,7 +19,7 @@ export class Address extends BaseEntity {
     @Column({ length: 255, nullable: false })
     region: string;
 
-    @OneToOne(() => User, user => user.address)
+    @OneToMany(() => User, user => user.address)
     @JoinColumn()
     user: Partial<User>
 

@@ -48,6 +48,8 @@ const createOrderController = async (orderData: {
       }
     });
 
+    // if the user has address already, use it, else create a new one
+
     const userAddress = Address.create({
       ...shippingAddress,
       createdAt: new Date(),
@@ -95,14 +97,28 @@ const createOrderController = async (orderData: {
       userAddress?.orders.push(order);
     }
 
-    // Save the updated userAddress with associated orders
     await userAddress.save();
 
     return Promise.all(orders);
   } catch (error) {
     console.error("Error creating order:", error);
-    throw error;
+    throw new AppError("Error creating order", 500, true);
   }
 }
 
-export { createOrderController };
+// get all orders for a user
+const getOrdersController = async (user: User): Promise<Order[]> => {
+  try {
+    const orders = await Order.find({
+      where: { user: { id: user.id } },
+      relations: ['variants', 'shop', 'shippingAddress'],
+    });
+    return orders;
+  } catch (error) {
+    console.error("Error getting orders:", error);
+    throw new AppError("Error getting orders", 500, true);
+  }
+}
+
+export { createOrderController, getOrdersController };
+

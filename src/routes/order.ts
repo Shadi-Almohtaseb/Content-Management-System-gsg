@@ -2,7 +2,7 @@ import express from 'express';
 import { authenticateUser } from '../middleware/auth.js';
 import { ExpressNS } from '../../@types/index.js';
 import { AppError } from '../utils/errorHandler.js';
-import { createOrderController } from '../controllers/order.js';
+import { createOrderController, getOrdersController } from '../controllers/order.js';
 const router = express.Router();
 
 /* POST create Order */
@@ -33,5 +33,34 @@ router.post("/", authenticateUser, async (req: ExpressNS.RequestWithUser, res: e
     next(error);
   }
 });
+
+// get all orders
+router.get("/", authenticateUser, async (req: ExpressNS.RequestWithUser, res: express.Response, next: express.NextFunction) => {
+
+  try {
+    const user = req.user;
+
+    if (!user) {
+      throw new AppError("you are unauthorized, login to continue", 404, true);
+    }
+
+    const orders = await getOrdersController(user);
+
+    res.status(200).json({
+      status: "success",
+      orders: orders,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/test", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  try {
+    res.status(200).json({ message: "test route" });
+  } catch (error) {
+    next(error);
+  }
+})
 
 export default router;
