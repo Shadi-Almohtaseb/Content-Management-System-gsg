@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticateShop } from '../middleware/auth.js';
 import { ExpressNS } from '../../@types/index.js';
-import { createProductController, deleteProductController, getAllProductController, getProductByIdController, getProductsByListIdsController, getProductsByShopIdController, getProductsByVariantIdsController } from '../controllers/product.js';
+import { createProductController, deleteProductController, getAllProductController, getProductByIdController, getProductsByListIdsController, getProductsByShopIdController, getProductsByVariantIdsController, updateProductController } from '../controllers/product.js';
 import { AppError } from '../utils/errorHandler.js';
 import { UploadedFile } from 'express-fileupload';
 import { uploadImageToCloudinary } from '../utils/cloudinaryMethods.js';
@@ -231,6 +231,49 @@ router.delete("/:id", authenticateShop, async (req: ExpressNS.RequestWithShop, r
       status: "success",
       message: "Product deleted successfully",
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/* PUT update product  */
+router.put("/:id", authenticateShop, async (req: ExpressNS.RequestWithShop, res: express.Response, next: express.NextFunction) => {
+  try {
+    const shop = req.shop;
+    if (!shop) {
+      throw new AppError("you are unauthorized, login to continue", 404, true);
+    }
+
+    const productId = Number(req.params.id);
+    const product = await getProductByIdController(productId);
+
+    if (!product) {
+      throw new AppError("Product not found", 404, true);
+    }
+
+    if (product.shop.shop_id !== shop.shop_id) {
+      throw new AppError("You are not authorized to update this product", 401, true);
+    }
+
+    const uploadedFiles = Array.isArray(req.files?.images) ? req.files?.images : [req.files?.images];
+
+    // Handle multiple files
+    const cloudinaryResponses = [];
+
+    if (uploadedFiles && uploadedFiles.length !== 0 && uploadedFiles[0]) {
+      for (const file of uploadedFiles) {
+        const cloudinaryResponse = await uploadImageToCloudinary(file || {} as UploadedFile, "products");
+        cloudinaryResponses.push(cloudinaryResponse);
+      }
+    }
+
+    await updateProductController(product, req.body, shop);
+
+    res.status(200).json({
+      status: "success",
+      message: "Product updated successfully",
+    });
+
   } catch (error) {
     next(error);
   }

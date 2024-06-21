@@ -145,6 +145,79 @@ const deleteProductController = async (id: number, shop: Shop) => {
   await deleteImageFromCloudinary(publicId);
 }
 
+const updateProductController = async (product: Product, payload: Product, shop: Shop) => {
+  return dataSource.manager.transaction(async transaction => {
+    const productToUpdate = await Product.findOne({ where: { id: product.id }, relations: ['shop', 'variants', 'tags'] });
+    if (!productToUpdate) {
+      throw new AppError("Product not found", 404, true);
+    }
+
+    if (productToUpdate.shop.shop_id !== shop?.shop_id) {
+      throw new AppError("You are not authorized to perform this action", 403, true);
+    }
+
+    productToUpdate.name = payload.name;
+    productToUpdate.long_description = payload.long_description;
+    productToUpdate.short_description = payload.short_description;
+
+    // Update categories and tags for the product
+    const updatedCategory = await Category.findBy({
+      id: In(payload.categories)
+    });
+    productToUpdate.categories = updatedCategory;
+
+    const updatedTags = await Tag.findBy({
+      id: In(payload.tags)
+    });
+    productToUpdate.tags = updatedTags;
+
+    // Parse payload.variants if it's a string
+    let variants;
+    if (typeof payload.variants === 'string') {
+      try {
+        variants = JSON.parse(payload.variants);
+      } catch (error) {
+        throw new AppError("Invalid input: variants must be a valid JSON string", 400, true);
+      }
+    } else {
+      variants = payload.variants;
+    }
+
+    // Check if variants is an array
+    if (!Array.isArray(variants)) {
+      throw new AppError("Invalid input: variants must be an array of objects", 400, true);
+    }
+
+    // Get all variants of the product
+    const variantsOfProduct = await ProductVariant.find({ where: { product: { id: product.id } } });
+
+    // Process the variants and update them
+    for (const variantData of variants) {
+      const variantToUpdate = variantsOfProduct.find(v => v.variant_id === variantData.variant_id);
+
+      if (!variantToUpdate) {
+        throw new AppError("Variant not found", 404, true);
+      }
+
+      variantToUpdate.color = variantData?.color || variantToUpdate.color;
+      variantToUpdate.originalPrice = variantData?.originalPrice || variantToUpdate.originalPrice;
+      variantToUpdate.discountPrice = variantData?.discountPrice || variantToUpdate.discountPrice;
+      variantToUpdate.stock_quantity = variantData?.stock_quantity || variantToUpdate.stock_quantity;
+      variantToUpdate.dimensions.height = variantData?.dimensions.height || variantToUpdate.dimensions.height;
+      variantToUpdate.dimensions.length = variantData?.dimensions.length || variantToUpdate.dimensions.length;
+      variantToUpdate.dimensions.width = variantData?.dimensions.width || variantToUpdate.dimensions.width;
+
+      await transaction.save(variantToUpdate);
+    }
+
+    await transaction.save(productToUpdate);
+
+    return productToUpdate;
+  });
+}
+
+
+
 export {
   createProductController,
   getProductByIdController,
@@ -152,5 +225,6 @@ export {
   deleteProductController,
   getProductsByShopIdController,
   getProductsByListIdsController,
-  getProductsByVariantIdsController
+  getProductsByVariantIdsController,
+  updateProductController
 }
