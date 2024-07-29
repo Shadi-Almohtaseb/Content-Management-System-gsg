@@ -9,13 +9,15 @@
       "start": "node ./dist/app.js",
       "build-tsc": "tsc -w",
       "build": "tsc",
-      "run-watch": "nodemon ./dist/app.js",
+      "run-watch": "nodemon -q ./dist/app.js",
       "dev": "concurrently \"npm:build-tsc\"  \"npm:run-watch\"",
       "typeorm": "typeorm-ts-node-commonjs"
    },
    "dependencies": {
       "bcrypt": "^5.1.1",
       "body-parser": "^1.19.1",
+      "class-transformer": "^0.5.1",
+      "class-validator": "^0.14.1",
       "cloudinary": "^1.41.0",
       "cookie-parser": "^1.4.6",
       "cors": "^2.8.5",

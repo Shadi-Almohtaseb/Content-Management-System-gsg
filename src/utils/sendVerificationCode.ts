@@ -50,7 +50,7 @@ export const sendVerificationCode = async (payload: User, title: string) => {
 
       const code = { id: vCode.id, verificationCode: vCode.verificationCode, expiresAt: vCode.expiresAt, createdAt: vCode.createdAt }
 
-      const { verificationCode, ...returnedUser } = payload;
+      const { verificationCode, password, ...returnedUser } = payload;
 
       return {
         success: true,

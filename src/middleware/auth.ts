@@ -1,61 +1,46 @@
 import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../db/entities/User.js";
-import { ExpressNS } from "../../@types/index.js";
 import { Shop } from "../db/entities/Shop.js";
+import { ExpressNS } from "../../@types/index.js";
+import { AppError } from "../utils/errorHandler.js";
 
-const authenticateUser: RequestHandler<any, any, Record<string, any>, any, Record<string, any>> = async (req, res, next) => {
-  const token2 = req.headers["authorization"]?.split(" ")[1] || "";
-  const token = req.cookies["userToken"] || token2;
-  let validToken;
-  try {
-    validToken = jwt.verify(token, process.env.SECRET_KEY || "");
-  } catch (error) {
-    validToken = false;
-  }
-
-  if (validToken) {
-    const decoded = jwt.decode(token, { json: true });
-    if (decoded?.email) {
-      const user = await User.findOneBy({ email: decoded.email });
-      if (user?.isDeleted || !user?.isVerified) {
-        (req as ExpressNS.RequestWithUser).user = undefined;
-      }
-      (req as ExpressNS.RequestWithUser).user = user || undefined;
-    } else {
-      (req as ExpressNS.RequestWithUser).user = undefined;
+const authenticate = (entity: 'user' | 'shop'): RequestHandler<any, any, Record<string, any>, any, Record<string, any>> => {
+  return async (req, res, next) => {
+    const tokenHeader = req.headers["authorization"]?.split(" ")[1] || "";
+    const tokenCookie = req.cookies[`${entity}Token`] || tokenHeader;
+    if (!tokenCookie) {
+      throw new AppError("Unauthorized", 401, true);
     }
-    next();
-  } else {
-    res.status(401).send("You are unauthorized, login to continue");
-  }
+
+    try {
+      jwt.verify(tokenCookie, process.env.SECRET_KEY || "");
+      const decoded = jwt.decode(tokenCookie, { json: true }) as jwt.JwtPayload;
+
+      if (decoded?.email) {
+        let entityInstance;
+        if (entity === 'user') {
+          entityInstance = await User.findOneBy({ email: decoded.email });
+          (req as ExpressNS.RequestWithUser).user = entityInstance?.isDeleted || !entityInstance?.isVerified ? undefined : entityInstance;
+        } else if (entity === 'shop') {
+          entityInstance = await Shop.findOneBy({ email: decoded.email });
+          (req as ExpressNS.RequestWithShop).shop = entityInstance?.isDeleted || !entityInstance?.isVerified ? undefined : entityInstance;
+        }
+      } else {
+        if (entity === 'user') {
+          (req as ExpressNS.RequestWithUser).user = undefined;
+        } else if (entity === 'shop') {
+          (req as ExpressNS.RequestWithShop).shop = undefined;
+        }
+      }
+      next();
+    } catch (error) {
+      throw new AppError("Invalid token", 401, true);
+    }
+  };
 };
 
-const authenticateShop: RequestHandler<any, any, Record<string, any>, any, Record<string, any>> = async (req, res, next) => {
-  const token2 = req.headers["authorization"]?.split(" ")[1] || "";
-  const token = req.cookies["shopToken"] || token2;
-  let validToken;
-  try {
-    validToken = jwt.verify(token, process.env.SECRET_KEY || "");
-  } catch (error) {
-    validToken = false;
-  }
-
-  if (validToken) {
-    const decoded = jwt.decode(token, { json: true });
-    if (decoded?.email) {
-      const shop = await Shop.findOneBy({ email: decoded.email });
-      if (shop?.isDeleted || !shop?.isVerified) {
-        (req as ExpressNS.RequestWithShop).shop = undefined;
-      }
-      (req as ExpressNS.RequestWithShop).shop = shop || undefined;
-    } else {
-      (req as ExpressNS.RequestWithShop).shop = undefined;
-    }
-    next();
-  } else {
-    res.status(401).send("You are unauthorized, login to continue");
-  }
-};
+const authenticateUser = authenticate('user');
+const authenticateShop = authenticate('shop');
 
 export { authenticateUser, authenticateShop };

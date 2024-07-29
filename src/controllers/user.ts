@@ -1,6 +1,6 @@
 import { User } from "../db/entities/User.js";
 import { AppError } from "../utils/errorHandler.js";
-import { generateToken } from "../utils/generateToken.js";
+import { generateUserToken } from "../utils/generateToken.js";
 import { VerificationCode } from "../db/entities/VerificationCode.js";
 import bcrypt from 'bcrypt';
 import { sendVerificationCode } from "../utils/sendVerificationCode.js";
@@ -67,12 +67,14 @@ const activateAccountController = async (email: string, verificationCode: string
   // delete the OTP from the database 
   await vCode.remove();
 
-  const token = generateToken(user);
+  const token = generateUserToken(user);
+
+  const { password: _, ...userWithoutPassword } = user;
 
   return {
     success: true,
     message: "Account activated successfully",
-    user,
+    user: userWithoutPassword,
     type: user.role,
     token,
   };
@@ -102,12 +104,14 @@ const loginController = async (payload: User) => {
     throw new AppError("Invalid credentials", 400, true);
   }
 
-  const token = generateToken(user);
+  const token = generateUserToken(user);
+
+  const { password: _, ...userWithoutPassword } = user;
 
   return {
     success: true,
     message: "Login successful",
-    user,
+    user: userWithoutPassword,
     type: user.role,
     token,
   };
@@ -149,6 +153,8 @@ const RestUserPasswordController = async (email: string, verificationCode: strin
   await user.save();
 
   await vCode.remove();
+
+  return { success: true, message: "Password updated successfully" }
 }
 
 const updateUserPasswordController = async (user: User, oldPassword: string, newPassword: string) => {
@@ -163,7 +169,7 @@ const updateUserPasswordController = async (user: User, oldPassword: string, new
 
   return {
     success: true,
-    message: "Password reset successful",
+    message: "Password Updated successfully",
   };
 }
 
@@ -181,9 +187,12 @@ const getUserController = async (userId: string) => {
     throw new AppError("User not verified", 404, true);
   }
 
+  const { password: _, ...userWithoutPassword } = user;
+
+
   return {
     success: true,
-    user
+    user: userWithoutPassword
   };
 }
 
@@ -198,7 +207,7 @@ const updateUserProfileController = async (userIn: User, payload: User) => {
   return {
     success: true,
     message: "Updated successfully",
-    userIn
+    user: userIn
   };
 }
 

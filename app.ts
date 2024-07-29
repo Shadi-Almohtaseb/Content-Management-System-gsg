@@ -12,7 +12,7 @@ import productsRouter from './src/routes/product.js'
 import tagsRouter from './src/routes/tag.js'
 import categoriesRouter from './src/routes/category.js'
 import dataSource from './src/db/dataSource.js'
-import { DefaultErrorHandler, customErrorHandler, notFoundHandler } from "./src/middleware/errorHandlers.js";
+import { DefaultErrorHandler, customErrorHandler } from "./src/middleware/errorHandlers.js";
 import cors from 'cors';
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -44,9 +44,6 @@ app.use('/categories', categoriesRouter);
 app.use('/tags', tagsRouter);
 app.use('/orders', orderRouter);
 
-// catch 404 and forward to error handler
-app.use(notFoundHandler)
-
 // Custom Error handler middleware
 app.use(customErrorHandler)
 
@@ -61,7 +58,7 @@ dataSource.initialize().then(() => {
 });
 
 app.listen(PORT, () => {
-  console.log(`App is listening on port ${PORT} and host http://localhost:${PORT}`);
+  console.log(`App is running on host http://localhost:${PORT}`);
 });
 
 

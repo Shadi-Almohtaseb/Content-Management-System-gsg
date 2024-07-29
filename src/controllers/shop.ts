@@ -78,10 +78,12 @@ const activateAccountController = async (email: string, verificationCode: string
 
   const token = generateShopToken(shop);
 
+  const { password, ...shopWithoutPassword } = shop;
+
   return {
     success: true,
     message: "Account activated successfully",
-    shop,
+    shop: shopWithoutPassword,
     role: shop.role,
     token,
   };
@@ -109,10 +111,12 @@ const loginShopController = async (payload: Shop) => {
 
   const token = generateShopToken(shop);
 
+  const { password: _, ...shopWithoutPassword } = shop;
+
   return {
     success: true,
     message: "Login successful",
-    shop,
+    shop: shopWithoutPassword,
     role: shop.role,
     token,
   };
@@ -178,9 +182,11 @@ const getShopController = async (id: string) => {
     throw new AppError("Shop dose not exist", 404, true);
   }
 
+  const { password, ...shopWithoutPassword } = shop;
+
   return {
     success: true,
-    shop
+    shop: shopWithoutPassword
   };
 }
 
@@ -192,10 +198,12 @@ const updateShopController = async (shop: Shop, payload: Shop) => {
   shop.description = description || shop.description;
   await shop.save();
 
+  const { password, ...shopWithoutPassword } = shop;
+
   return {
     success: true,
     message: "Updated successfully",
-    shop
+    shop: shopWithoutPassword
   };
 }
 

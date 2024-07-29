@@ -1,11 +1,5 @@
-import createError from 'http-errors';
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/errorHandler.js';
-
-// catch 404 and forward to error handler
-export function notFoundHandler(req: Request, res: Response, next: NextFunction) {
-  next(createError(404));
-}
 
 // Custom Error handler middleware 
 export function customErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {

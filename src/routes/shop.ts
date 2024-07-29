@@ -2,10 +2,12 @@ import express from 'express';
 import { RestShopPasswordController, activateAccountController, forgetShopPasswordController, getShopController, loginShopController, signupShopController, updateShopController, updateShopPasswordController } from '../controllers/shop.js';
 import { ExpressNS } from '../../@types/index.js';
 import { authenticateShop } from '../middleware/auth.js';
+import { validationMiddleware } from '../middleware/validationMiddleware.js';
+import { Shop } from '../db/entities/Shop.js';
 const router = express.Router();
 
 /* POST Signup Shop. */
-router.post("/signup", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+router.post("/signup", validationMiddleware(Shop), async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     if (req.body.shopName && req.body.password && req.body.email && req.body.phoneNumber) {
       const data = await signupShopController(req.body);
