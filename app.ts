@@ -1,7 +1,6 @@
 import "express-async-errors";
 import "./config.js"
 import express from 'express'
-import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload'
 import indexRouter from './src/routes/index.js'
@@ -17,10 +16,10 @@ import cors from 'cors';
 import { v2 as cloudinary } from 'cloudinary';
 
 const app = express();
-dotenv.config();
+
 const PORT = process.env.PORT || 5000;
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [process.env.FRONTEND_URL || 'http://localhost:3000', 'https://darkom-dashboard.vercel.app'],
   credentials: true
 }));
 

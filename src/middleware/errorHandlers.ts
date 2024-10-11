@@ -4,11 +4,11 @@ import { AppError } from '../utils/errorHandler.js';
 // Custom Error handler middleware 
 export function customErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
   if (err instanceof AppError) {
-    res.status(err.httpCode).json({ success: false, error: err.message });
+    res.status(err.httpCode).json({ success: false, message: err.message });
   } else {
     // Handle other errors here
     console.error("Error :( => ", err);
-    res.status(500).json({ success: false, error: "Something went wrong" });
+    res.status(500).json({ success: false, message: "Something went wrong" });
   }
 }
 
@@ -19,5 +19,5 @@ export function DefaultErrorHandler(err: any, req: Request, res: Response, next:
 
   // render the error page
   console.log("Catch Error :(( => ", err);
-  res.status(err.status || 500).send({ error: "Internal server error" });
+  res.status(err.status || 500).send({ message: "Internal server error" });
 }
